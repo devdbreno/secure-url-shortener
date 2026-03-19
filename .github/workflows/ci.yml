@@ -1,0 +1,110 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres-identity:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_DB: identity_db
+          POSTGRES_USER: identity_user
+          POSTGRES_PASSWORD: identity_password
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      postgres-short-url:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_DB: short_url_db
+          POSTGRES_USER: short_url_user
+          POSTGRES_PASSWORD: short_url_password
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment file
+        run: cp .env.example .env
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Check formatting
+        run: |
+          yarn workspace @secure-url-shortener/identity exec prettier --check "src/**/*.ts"
+          yarn workspace @secure-url-shortener/short-url exec prettier --check "src/**/*.ts"
+
+      - name: Run lint
+        run: |
+          yarn workspace @secure-url-shortener/identity exec eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0
+          yarn workspace @secure-url-shortener/short-url exec eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0
+
+      - name: Build
+        env:
+          DB_IDENTITY_HOST: localhost
+          DB_IDENTITY_PORT: 5433
+          DB_IDENTITY_NAME: identity_db
+          DB_IDENTITY_USER: identity_user
+          DB_IDENTITY_PASSWORD: identity_password
+          DB_SHORT_URL_HOST: localhost
+          DB_SHORT_URL_PORT: 5434
+          DB_SHORT_URL_NAME: short_url_db
+          DB_SHORT_URL_USER: short_url_user
+          DB_SHORT_URL_PASSWORD: short_url_password
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: yarn build
+
+      - name: Run tests
+        env:
+          DB_IDENTITY_HOST: localhost
+          DB_IDENTITY_PORT: 5433
+          DB_IDENTITY_NAME: identity_db
+          DB_IDENTITY_USER: identity_user
+          DB_IDENTITY_PASSWORD: identity_password
+          DB_SHORT_URL_HOST: localhost
+          DB_SHORT_URL_PORT: 5434
+          DB_SHORT_URL_NAME: short_url_db
+          DB_SHORT_URL_USER: short_url_user
+          DB_SHORT_URL_PASSWORD: short_url_password
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          yarn test:unit
+          yarn test:e2e
