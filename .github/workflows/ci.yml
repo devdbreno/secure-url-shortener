@@ -3,7 +3,7 @@ name: CI Pipeline
 on: [push, pull_request]
 
 jobs:
-  test:
+  secure-url-shortener:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
