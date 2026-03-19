@@ -342,9 +342,9 @@ describe('UrlController', () => {
       value: null,
     } as never);
 
-    await expect(controller.redirectHumanized(reply as never, 'missing-user', 'openai-docs', undefined)).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      controller.redirectHumanized(reply as never, 'missing-user', 'openai-docs', undefined),
+    ).rejects.toThrow(NotFoundException);
     expect(redirectUrlUseCase.executeHumanized).not.toHaveBeenCalled();
     expect(redirectUrlUseCase.trackVisit).not.toHaveBeenCalled();
   });
