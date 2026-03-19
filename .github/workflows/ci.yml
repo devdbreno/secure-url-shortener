@@ -9,7 +9,7 @@ jobs:
 
     services:
       postgres-identity:
-        image: postgres:14-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: identity_db
           POSTGRES_USER: identity_user
@@ -23,7 +23,7 @@ jobs:
           --health-retries 5
 
       postgres-short-url:
-        image: postgres:14-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: short_url_db
           POSTGRES_USER: short_url_user
@@ -37,7 +37,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis:7-alpine
+        image: redis:alpine
         ports:
           - 6379:6379
         options: >-
@@ -59,7 +59,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: yarn
 
       - name: Install dependencies
