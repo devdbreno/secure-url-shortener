@@ -208,7 +208,7 @@ describe('UrlController (e2e)', () => {
       id: '1',
       code: 'abc12345',
       publicPaths: {
-        short: '/abc12345',
+        shortened: '/abc12345',
         humanized: '/test-user/openai-docs',
       },
       visitMetrics: {

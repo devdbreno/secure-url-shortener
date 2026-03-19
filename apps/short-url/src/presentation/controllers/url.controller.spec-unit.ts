@@ -115,7 +115,7 @@ describe('UrlController', () => {
       id: '1',
       code: 'abc12345',
       publicPaths: {
-        short: '/abc12345',
+        shortened: '/abc12345',
         humanized: '/test-user/openai-docs',
       },
       visitMetrics: {
@@ -149,7 +149,7 @@ describe('UrlController', () => {
 
     expect(result).toMatchObject({
       publicPaths: {
-        short: '/abc12345',
+        shortened: '/abc12345',
         humanized: null,
       },
       lifecycle: {

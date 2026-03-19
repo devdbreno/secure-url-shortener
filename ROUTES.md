@@ -173,7 +173,7 @@ Resposta típica `200`:
   "code": "abc12345",
   "origin": "https://example.com/some/path",
   "publicPaths": {
-    "short": "/abc12345",
+    "shortened": "/abc12345",
     "humanized": "/jane-doe/example-page"
   },
   "visitMetrics": {

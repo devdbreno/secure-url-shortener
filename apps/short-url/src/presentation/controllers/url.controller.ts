@@ -203,7 +203,7 @@ export class UrlController {
       code: shortUrl.code,
       origin: shortUrl.origin,
       publicPaths: {
-        short: `/${encodeURIComponent(shortUrl.code)}`,
+        shortened: `/${encodeURIComponent(shortUrl.code)}`,
         humanized: humanizedPath,
       },
       visitMetrics: {
