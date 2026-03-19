@@ -1,0 +1,127 @@
+services:
+  postgres-identity:
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_DB=${DB_IDENTITY_NAME}
+      - POSTGRES_USER=${DB_IDENTITY_USER}
+      - POSTGRES_PASSWORD=${DB_IDENTITY_PASSWORD}
+    volumes:
+      - pgdata_identity:/var/lib/postgresql/data
+    ports:
+      - "${DB_IDENTITY_PORT}:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_IDENTITY_USER} -d ${DB_IDENTITY_NAME}",
+        ]
+      retries: 5
+      timeout: 5s
+      interval: 5s
+
+  postgres-short-url:
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_DB=${DB_SHORT_URL_NAME}
+      - POSTGRES_USER=${DB_SHORT_URL_USER}
+      - POSTGRES_PASSWORD=${DB_SHORT_URL_PASSWORD}
+    volumes:
+      - pgdata_short_url:/var/lib/postgresql/data
+    ports:
+      - "${DB_SHORT_URL_PORT}:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_SHORT_URL_USER} -d ${DB_SHORT_URL_NAME}",
+        ]
+      retries: 5
+      timeout: 5s
+      interval: 5s
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 5
+      timeout: 5s
+      interval: 5s
+
+  identity:
+    build:
+      context: .
+      dockerfile: Dockerfile.identity
+    env_file:
+      - .env
+    environment:
+      - DB_IDENTITY_PORT=5432
+      - DB_IDENTITY_HOST=postgres-identity
+      - HOST_IDENTITY_TCP=identity
+    ports:
+      - "${PORT_IDENTITY}:${PORT_IDENTITY:-4000}"
+      - "${PORT_IDENTITY_TCP}:${PORT_IDENTITY_TCP:-4002}"
+    depends_on:
+      postgres-identity:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      retries: 5
+      timeout: 5s
+      interval: 10s
+
+  short-url:
+    build:
+      context: .
+      dockerfile: Dockerfile.short-url
+    env_file:
+      - .env
+    environment:
+      - DB_SHORT_URL_PORT=5432
+      - DB_SHORT_URL_HOST=postgres-short-url
+      - HOST_IDENTITY_TCP=identity
+    ports:
+      - "${PORT_SHORT_URL}:${PORT_SHORT_URL:-4001}"
+    depends_on:
+      postgres-short-url:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4001/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      retries: 5
+      timeout: 5s
+      interval: 10s
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata_identity:
+  pgdata_short_url:

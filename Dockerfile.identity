@@ -1,0 +1,27 @@
+# Building
+FROM node:24.14-slim AS builder
+
+WORKDIR /app
+
+COPY . .
+
+# Enable corepack and install dependencies
+RUN corepack enable && yarn install --immutable
+
+WORKDIR /app/apps/identity
+
+RUN yarn build
+
+# Runtime
+FROM node:24.14-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/identity/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/identity/package.json ./
+
+EXPOSE 4000
+EXPOSE 4002
+
+CMD ["node", "dist/main"]

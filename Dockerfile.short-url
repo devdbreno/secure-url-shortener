@@ -1,0 +1,26 @@
+# Building
+FROM node:24.14-slim AS builder
+
+WORKDIR /app
+
+COPY . .
+
+# Enable corepack and install dependencies
+RUN corepack enable && yarn install --immutable
+
+WORKDIR /app/apps/short-url
+
+RUN yarn build
+
+# Runtime
+FROM node:24.14-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/short-url/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/short-url/package.json ./
+
+EXPOSE 4001
+
+CMD ["node", "dist/main"]

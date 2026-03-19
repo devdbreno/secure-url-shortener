@@ -1,0 +1,42 @@
+{
+  "rootDir": "src",
+  "testRegex": ".*\\.spec-unit\\.ts$",
+  "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+  "testEnvironment": "node",
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "collectCoverageFrom": [
+    "**/*.ts",
+    "!**/*.spec-unit.ts",
+    "!**/*.e2e-spec.ts",
+    "!**/*.module.ts",
+    "!<rootDir>/main.ts",
+    "!<rootDir>/application/constants.ts",
+    "!<rootDir>/application/error-types.ts",
+    "!<rootDir>/domain/entities/**",
+    "!<rootDir>/domain/repositories/**",
+    "!<rootDir>/infra/guards/jwt-auth.guard.ts",
+    "!<rootDir>/infra/persistence/user.orm.entity.ts",
+    "!<rootDir>/presentation/app.module.ts"
+  ],
+  "testPathIgnorePatterns": ["<rootDir>/main.ts", "<rootDir>/presentation/app.module.ts"],
+  "coveragePathIgnorePatterns": [
+    ".spec-unit.ts$",
+    ".e2e-spec.ts$",
+    ".mock.ts$",
+    ".module.ts$",
+    "<rootDir>/main.ts",
+    "<rootDir>/application/constants.ts",
+    "<rootDir>/application/error-types.ts",
+    "<rootDir>/domain/entities/",
+    "<rootDir>/domain/repositories/",
+    "<rootDir>/infra/guards/jwt-auth.guard.ts",
+    "<rootDir>/infra/persistence/user.orm.entity.ts",
+    "<rootDir>/presentation/app.module.ts"
+  ],
+  "moduleNameMapper": {
+    "@infra/(.*)$": "<rootDir>/infra/$1",
+    "@domain/(.*)$": "<rootDir>/domain/$1",
+    "@application/(.*)$": "<rootDir>/application/$1",
+    "@presentation/(.*)$": "<rootDir>/presentation/$1"
+  }
+}

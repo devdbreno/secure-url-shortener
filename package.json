@@ -1,0 +1,28 @@
+{
+  "name": "secure-url-shortener",
+  "packageManager": "yarn@4.9.1",
+  "scripts": {
+    "build": "yarn workspaces foreach --all --parallel run build",
+    "start": "yarn workspaces foreach --all --parallel run start",
+    "start:url": "yarn workspace @secure-url-shortener/short-url start",
+    "start:url:dev": "yarn workspace @secure-url-shortener/short-url start:dev",
+    "start:identity:dev": "yarn workspace @secure-url-shortener/identity start:dev",
+    "start:dev": "concurrently --names \"identity,short-url\" --prefix-colors \"blue,green\" \"yarn workspace @secure-url-shortener/identity start:dev\" \"yarn workspace @secure-url-shortener/short-url start:dev\"",
+    "lint": "yarn workspaces foreach --all --parallel run lint",
+    "format": "yarn workspaces foreach --all --parallel run format",
+    "test": "yarn workspaces foreach --all --parallel run test",
+    "test:e2e": "yarn workspaces foreach --all --parallel run test:e2e",
+    "test:unit": "yarn workspaces foreach --all --parallel run test:unit",
+    "prepare": "husky",
+    "prepush": "yarn test:unit && yarn test:e2e",
+    "precommit": "yarn workspaces foreach --all --parallel run lint-staged"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  }
+}
