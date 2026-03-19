@@ -6,7 +6,7 @@ import { IUrlRepository } from '@domain/repositories/url.repository';
 import { IUrlEnrichmentJobDispatcher } from '@application/ports/outbound/url-enrichment-job-dispatcher.port';
 import { URL_ENRICHMENT_JOB_DISPATCHER, URL_REPOSITORY } from '@application/constants';
 
-const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 8);
+const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-', 8);
 
 @Injectable()
 export class CreateShortUrlUseCase {
