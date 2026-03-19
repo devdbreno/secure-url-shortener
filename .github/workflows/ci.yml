@@ -65,15 +65,13 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Check formatting
+      - name: Formatting
         run: |
-          yarn workspace @secure-url-shortener/identity exec prettier --check "src/**/*.ts"
-          yarn workspace @secure-url-shortener/short-url exec prettier --check "src/**/*.ts"
+          yarn format
 
-      - name: Run lint
+      - name: Linting
         run: |
-          yarn workspace @secure-url-shortener/identity exec eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0
-          yarn workspace @secure-url-shortener/short-url exec eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0
+          yarn lint
 
       - name: Build
         env:
