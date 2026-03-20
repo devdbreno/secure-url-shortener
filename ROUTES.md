@@ -126,13 +126,19 @@ Resposta típica `200`:
 
 ### `GET /short-urls/:shortUrlCode`
 
-Retorna um único link do usuário autenticado.
+Retorna uma única url encurtada.
 
-Headers:
+Headers opcionais:
 
 ```text
 Authorization: Bearer <jwt>
 ```
+
+Comportamento:
+
+- se o link for anônimo (`userId=null`), a rota pode ser consultada sem autenticação;
+- se o link pertencer a um usuário, a rota só retorna dados para o dono autenticado;
+- inclui `publicPaths.shortened` e `publicPaths.humanized` quando a rota humanizada estiver disponível.
 
 Resposta típica `200`:
 
@@ -206,13 +212,19 @@ Resposta típica `201`:
 
 ### `GET /short-urls/:shortUrlCode/stats`
 
-Retorna um payload operacional para o dono do link.
+Retorna um payload operacional para um link curto.
 
-Headers:
+Headers opcionais:
 
 ```text
 Authorization: Bearer <jwt>
 ```
+
+Comportamento:
+
+- se o link for anônimo (`userId=null`), a rota pode ser consultada sem autenticação;
+- se o link pertencer a um usuário, a rota só retorna dados para o dono autenticado;
+- retorna também `publicPaths.shortened` e `publicPaths.humanized` quando existir rota humanizada.
 
 Resposta típica `200`:
 

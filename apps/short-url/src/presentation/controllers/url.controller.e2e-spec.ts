@@ -17,6 +17,7 @@ import { HealthController } from '@presentation/controllers/health.controller';
 import { UrlController } from '@presentation/controllers/url.controller';
 
 import { CreateShortUrlUseCase } from '@application/use-cases/create-short-url.usecase';
+import { GetShortUrlUseCase } from '@application/use-cases/get-short-url.usecase';
 import { GetShortUrlStatsUseCase } from '@application/use-cases/get-short-url-stats.usecase';
 import { ListUrlsUseCase } from '@application/use-cases/list-urls.usecase';
 import { RedirectShortUrlUseCase } from '@application/use-cases/redirect-short-url.usecase';
@@ -35,6 +36,9 @@ describe('UrlController (e2e)', () => {
   let app: NestFastifyApplication;
 
   const listUrlsUseCase = {
+    execute: jest.fn(),
+  };
+  const getShortUrlUseCase = {
     execute: jest.fn(),
   };
   const getShortUrlStatsUseCase = {
@@ -92,6 +96,7 @@ describe('UrlController (e2e)', () => {
       controllers: [UrlController, HealthController],
       providers: [
         { provide: ListUrlsUseCase, useValue: listUrlsUseCase },
+        { provide: GetShortUrlUseCase, useValue: getShortUrlUseCase },
         { provide: GetShortUrlStatsUseCase, useValue: getShortUrlStatsUseCase },
         { provide: RedirectShortUrlUseCase, useValue: redirectShortUrlUseCase },
         { provide: CreateShortUrlUseCase, useValue: createShortUrlUseCase },
@@ -125,14 +130,137 @@ describe('UrlController (e2e)', () => {
   });
 
   it('GET /short-urls lists the authenticated user URLs', async () => {
-    listUrlsUseCase.execute.mockResolvedValueOnce([{ id: '1', code: 'abc12345' }]);
+    listUrlsUseCase.execute.mockResolvedValueOnce([
+      {
+        id: '1',
+        code: 'abc12345',
+        origin: 'https://docs.example.test/reference',
+        clicks: 8,
+        userId: 'user-id',
+        createdAt: new Date('2026-03-16T12:00:00.000Z'),
+        updatedAt: new Date('2026-03-18T12:00:00.000Z'),
+        deletedAt: null,
+        enrichment: {
+          status: 'completed',
+          attempts: 1,
+          enrichedAt: new Date('2026-03-18T12:00:00.000Z'),
+          riskLevel: 'low',
+          category: 'documentation',
+          summary: 'Example docs',
+          tags: ['example', 'docs'],
+          alternativeSlug: 'example-docs',
+          provider: 'gemini',
+          error: null,
+        },
+      },
+    ]);
 
     const response = await request(app.getHttpServer()).get('/short-urls').set('Authorization', 'Bearer token');
 
     expect(response.status).toBe(HttpStatus.OK);
-    expect(response.body).toEqual([{ id: '1', code: 'abc12345' }]);
+    expect(response.body).toMatchObject([
+      {
+        id: '1',
+        code: 'abc12345',
+        publicPaths: {
+          shortened: '/abc12345',
+          humanized: '/test-user/example-docs',
+        },
+        enrichment: {
+          provider: 'gemini',
+          hasHumanizedPath: true,
+        },
+      },
+    ]);
     expect(identityJwtTcpGuard.canActivate).toHaveBeenCalledTimes(1);
     expect(listUrlsUseCase.execute.mock.calls).toEqual([['user-id']]);
+  });
+
+  it('GET /short-urls/:shortUrlCode returns one authenticated user URL', async () => {
+    getShortUrlUseCase.execute.mockResolvedValueOnce({
+      id: '1',
+      code: 'abc12345',
+      origin: 'https://docs.example.test/reference',
+      clicks: 8,
+      userId: 'user-id',
+      createdAt: new Date('2026-03-16T12:00:00.000Z'),
+      updatedAt: new Date('2026-03-18T12:00:00.000Z'),
+      deletedAt: null,
+      enrichment: {
+        status: 'completed',
+        attempts: 1,
+        enrichedAt: new Date('2026-03-18T12:00:00.000Z'),
+        riskLevel: 'low',
+        category: 'documentation',
+        summary: 'Example docs',
+        tags: ['example', 'docs'],
+        alternativeSlug: 'example-docs',
+        provider: 'gemini',
+        error: null,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/short-urls/abc12345')
+      .set('Authorization', 'Bearer token');
+
+    expect(response.status).toBe(HttpStatus.OK);
+    expect(response.body).toMatchObject({
+      id: '1',
+      code: 'abc12345',
+      publicPaths: {
+        shortened: '/abc12345',
+        humanized: '/test-user/example-docs',
+      },
+      enrichment: {
+        provider: 'gemini',
+        hasHumanizedPath: true,
+      },
+    });
+    expect(getShortUrlUseCase.execute).toHaveBeenCalledWith('abc12345', 'user-id');
+  });
+
+  it('GET /short-urls/:shortUrlCode returns one anonymous URL without authentication', async () => {
+    getShortUrlUseCase.execute.mockResolvedValueOnce({
+      id: '1',
+      code: 'abc12345',
+      origin: 'https://docs.example.test/reference',
+      clicks: 8,
+      userId: null,
+      createdAt: new Date('2026-03-16T12:00:00.000Z'),
+      updatedAt: new Date('2026-03-18T12:00:00.000Z'),
+      deletedAt: null,
+      enrichment: {
+        status: 'completed',
+        attempts: 1,
+        enrichedAt: new Date('2026-03-18T12:00:00.000Z'),
+        riskLevel: 'low',
+        category: 'documentation',
+        summary: 'Example docs',
+        tags: ['example', 'docs'],
+        alternativeSlug: 'example-docs',
+        provider: 'gemini',
+        error: null,
+      },
+    });
+
+    const response = await request(app.getHttpServer()).get('/short-urls/abc12345');
+
+    expect(response.status).toBe(HttpStatus.OK);
+    expect(response.body).toMatchObject({
+      id: '1',
+      code: 'abc12345',
+      publicPaths: {
+        shortened: '/abc12345',
+        humanized: null,
+      },
+      enrichment: {
+        provider: 'gemini',
+        hasHumanizedPath: false,
+      },
+    });
+    expect(identityOptionalJwtTcpGuard.canActivate).toHaveBeenCalled();
+    expect(getShortUrlUseCase.execute).toHaveBeenCalledWith('abc12345', undefined);
   });
 
   it('GET /health returns the service health payload', async () => {
@@ -183,6 +311,7 @@ describe('UrlController (e2e)', () => {
       code: 'abc12345',
       origin: 'https://docs.example.test/reference',
       clicks: 8,
+      userId: 'user-id',
       createdAt: new Date('2026-03-16T12:00:00.000Z'),
       updatedAt: new Date('2026-03-18T12:00:00.000Z'),
       deletedAt: null,
@@ -222,7 +351,50 @@ describe('UrlController (e2e)', () => {
         hasHumanizedPath: true,
       },
     });
-    expect(getShortUrlStatsUseCase.execute).toHaveBeenCalledWith('user-id', 'abc12345');
+    expect(getShortUrlStatsUseCase.execute).toHaveBeenCalledWith('abc12345', 'user-id');
+  });
+
+  it('GET /short-urls/:shortUrlCode/stats returns anonymous URL stats without authentication', async () => {
+    getShortUrlStatsUseCase.execute.mockResolvedValueOnce({
+      id: '1',
+      code: 'abc12345',
+      origin: 'https://docs.example.test/reference',
+      clicks: 8,
+      userId: null,
+      createdAt: new Date('2026-03-16T12:00:00.000Z'),
+      updatedAt: new Date('2026-03-18T12:00:00.000Z'),
+      deletedAt: null,
+      enrichment: {
+        status: 'completed',
+        attempts: 1,
+        enrichedAt: new Date('2026-03-18T12:00:00.000Z'),
+        riskLevel: 'low',
+        category: 'documentation',
+        summary: 'Example docs',
+        tags: ['example', 'docs'],
+        alternativeSlug: 'example-docs',
+        provider: 'gemini',
+        error: null,
+      },
+    });
+
+    const response = await request(app.getHttpServer()).get('/short-urls/abc12345/stats');
+
+    expect(response.status).toBe(HttpStatus.OK);
+    expect(response.body).toMatchObject({
+      id: '1',
+      code: 'abc12345',
+      publicPaths: {
+        shortened: '/abc12345',
+        humanized: null,
+      },
+      enrichment: {
+        provider: 'gemini',
+        hasHumanizedPath: false,
+      },
+    });
+    expect(identityOptionalJwtTcpGuard.canActivate).toHaveBeenCalled();
+    expect(getShortUrlStatsUseCase.execute).toHaveBeenCalledWith('abc12345', undefined);
   });
 
   it('PATCH /short-urls/:shortUrlCode rejects invalid short codes before reaching the use case', async () => {
