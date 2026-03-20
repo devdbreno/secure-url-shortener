@@ -1,0 +1,163 @@
+{
+  "info": {
+    "_postman_id": "8e0af381-1e65-4d88-a6ab-9be11e1a6001",
+    "name": "secure-url-shortener",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection synced with the current secure-url-shortener routes."
+  },
+  "variable": [
+    { "key": "identityBaseUrl", "value": "http://localhost:4000" },
+    { "key": "shortUrlBaseUrl", "value": "http://localhost:4001" },
+    { "key": "jwtToken", "value": "" },
+    { "key": "shortUrlCode", "value": "abc12345" },
+    { "key": "username", "value": "jane-doe" },
+    { "key": "alternativeSlug", "value": "example-page" }
+  ],
+  "item": [
+    {
+      "name": "Identity",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "url": "{{identityBaseUrl}}/health"
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\",\n  \"username\": \"jane-doe\"\n}"
+            },
+            "url": "{{identityBaseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\"\n}"
+            },
+            "url": "{{identityBaseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": "{{identityBaseUrl}}/auth/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Short URL",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "url": "{{shortUrlBaseUrl}}/health"
+          }
+        },
+        {
+          "name": "Create Short URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"https://example.test/reference\"\n}"
+            },
+            "url": "{{shortUrlBaseUrl}}/short-urls"
+          }
+        },
+        {
+          "name": "List Own URLs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": "{{shortUrlBaseUrl}}/short-urls"
+          }
+        },
+        {
+          "name": "Get URL By Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": "{{shortUrlBaseUrl}}/short-urls/{{shortUrlCode}}"
+          }
+        },
+        {
+          "name": "Get URL Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": "{{shortUrlBaseUrl}}/short-urls/{{shortUrlCode}}/stats"
+          }
+        },
+        {
+          "name": "Update URL Origin",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"https://example.test/new-destination\"\n}"
+            },
+            "url": "{{shortUrlBaseUrl}}/short-urls/{{shortUrlCode}}"
+          }
+        },
+        {
+          "name": "Delete URL",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": "{{shortUrlBaseUrl}}/short-urls/{{shortUrlCode}}"
+          }
+        },
+        {
+          "name": "Redirect By Code",
+          "request": {
+            "method": "GET",
+            "url": "{{shortUrlBaseUrl}}/{{shortUrlCode}}"
+          }
+        },
+        {
+          "name": "Redirect Humanized",
+          "request": {
+            "method": "GET",
+            "url": "{{shortUrlBaseUrl}}/{{username}}/{{alternativeSlug}}"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ Monorepo with two NestJS microservices for secure URL shortening, authentication
 ## What the project delivers
 
 - `Identity`: registration, login, authenticated profile, JWT validation, and public user lookup by `username`.
-- `Short-url`: short-link creation, user-scoped listing, single-item lookup, update, soft deletion, stats, and redirect flows.
+- `Short-url`: short-link creation, user-scoped listing, single-item lookup by code, update, soft deletion, stats, and redirect flows.
 - Link creation with optional authentication: anonymous or tied to the authenticated user.
 - Asynchronous enrichment with `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, and `provider`.
 - Human-friendly route based on `username + alternativeSlug`.
@@ -29,6 +29,8 @@ From an architecture and interview perspective, this project demonstrates:
 ## Route documentation
 
 - HTTP routes and internal contracts: [ROUTES.md](./ROUTES.md)
+- Postman collection: [secure-url-shortener.postman_collection.json](./docs/collections/secure-url-shortener.postman_collection.json)
+- Insomnia collection: [secure-url-shortener.insomnia.json](./docs/collections/secure-url-shortener.insomnia.json)
 - Identity Swagger: `http://localhost:4000/api-docs`
 - Short URL Swagger: `http://localhost:4001/api-docs`
 
@@ -90,7 +92,7 @@ Responsible for:
 - shortening URLs;
 - keeping optional ownership for authenticated users;
 - listing links owned by the authenticated user;
-- retrieving one specific link owned by the authenticated user;
+- retrieving one specific link by `code`;
 - allowing single-item lookup and stats for anonymous links without authentication;
 - updating the destination and clearing previous enrichment data;
 - soft deleting links;
@@ -161,7 +163,7 @@ Core files in this flow:
 - Stored enrichment is cleared and set back to `pending`.
 - Previous `summary`, `category`, `tags`, `alternativeSlug`, `provider`, `riskLevel`, `error`, and `enrichedAt` values are discarded.
 
-### 7. Authenticated stats
+### 7. Stats by code
 
 - `GET /short-urls/:shortUrlCode/stats`
 - Returns `totalClicks`, average clicks per day, link age, enrichment state, attempts, `riskLevel`, `provider`, and whether the humanized route is available.

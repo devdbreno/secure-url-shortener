@@ -7,7 +7,7 @@ Monorepo com dois microservices NestJS para encurtamento seguro de URLs, autenti
 ## O que o projeto entrega
 
 - `Identity`: registro, login, perfil autenticado, validação JWT e resolução pública de usuário por `username`.
-- `Short-url`: criação, listagem do usuário, consulta unitária, atualização, exclusão lógica, estatísticas e redirecionamento de links curtos.
+- `Short-url`: criação, listagem do usuário, consulta unitária por código, atualização, exclusão lógica, estatísticas e redirecionamento de links curtos.
 - Criação de link com autenticação opcional: anônimo ou associado ao usuário autenticado.
 - Enrichment assíncrono com `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel` e `provider`.
 - Rota humanizada baseada em `username + alternativeSlug`.
@@ -29,6 +29,8 @@ Do ponto de vista de arquitetura e entrevista técnica, este projeto demonstra:
 ## Documentação de rotas
 
 - Rotas HTTP e contratos internos: [ROUTES.md](./ROUTES.md)
+- Collection Postman: [secure-url-shortener.postman_collection.json](./docs/collections/secure-url-shortener.postman_collection.json)
+- Collection Insomnia: [secure-url-shortener.insomnia.json](./docs/collections/secure-url-shortener.insomnia.json)
 - Swagger Identity: `http://localhost:4000/api-docs`
 - Swagger Short URL: `http://localhost:4001/api-docs`
 
@@ -90,7 +92,7 @@ Responsável por:
 - encurtar URLs;
 - manter ownership opcional por usuário autenticado;
 - listar links do usuário autenticado;
-- consultar um link específico do usuário autenticado;
+- consultar um link específico por `code`;
 - permitir consulta unitária e stats de links anônimos sem autenticação;
 - atualizar destino e limpar o enrichment anterior;
 - excluir links logicamente;
@@ -161,7 +163,7 @@ Arquivos centrais desse fluxo:
 - O enrichment armazenado é limpo e volta para `pending`.
 - `summary`, `category`, `tags`, `alternativeSlug`, `provider`, `riskLevel`, `error` e `enrichedAt` anteriores são descartados.
 
-### 7. Estatísticas autenticadas
+### 7. Estatísticas por código
 
 - `GET /short-urls/:shortUrlCode/stats`
 - Retorna `totalClicks`, média de cliques por dia, idade do link, estado do enrichment, tentativas, `riskLevel`, `provider` e disponibilidade da rota humanizada.

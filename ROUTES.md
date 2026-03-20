@@ -12,6 +12,20 @@ Guia direto das rotas HTTP públicas e dos contratos internos usados entre os mi
 
 ## Identity HTTP
 
+### `GET /health`
+
+Retorna o status do service `identity`.
+
+Resposta `200`:
+
+```json
+{
+  "service": "identity",
+  "status": "ok",
+  "transports": ["http", "tcp"]
+}
+```
+
 ### `POST /auth/register`
 
 Cria um usuário.
@@ -87,6 +101,20 @@ Resposta `200`:
 
 ## Short URL HTTP
 
+### `GET /health`
+
+Retorna o status do service `short-url`.
+
+Resposta `200`:
+
+```json
+{
+  "service": "short-url",
+  "status": "ok",
+  "dependencies": ["postgres", "redis", "identity-tcp"]
+}
+```
+
 ### `GET /short-urls`
 
 Lista os links do usuário autenticado.
@@ -104,21 +132,28 @@ Resposta típica `200`:
   {
     "id": "uuid",
     "origin": "https://example.com/some/path",
-    "clicks": 0,
+    "clicks": 42,
     "userId": "uuid",
     "code": "abc12345",
     "createdAt": "2026-03-18T12:00:00.000Z",
-    "updatedAt": "2026-03-18T12:00:00.000Z",
+    "updatedAt": "2026-03-18T12:10:00.000Z",
     "deletedAt": null,
     "publicPaths": {
       "shortened": "/abc12345",
       "humanized": "/jane-doe/example-page"
     },
     "enrichment": {
-      "status": "pending",
-      "tags": [],
-      "provider": null,
-      "attempts": 0
+      "status": "completed",
+      "attempts": 1,
+      "enrichedAt": "2026-03-18T12:05:00.000Z",
+      "riskLevel": "low",
+      "category": "documentation",
+      "summary": "Page summary",
+      "tags": ["docs", "api"],
+      "alternativeSlug": "example-page",
+      "provider": "gemini",
+      "hasHumanizedPath": true,
+      "error": null
     }
   }
 ]

@@ -1,0 +1,348 @@
+{
+  "__export_format": 4,
+  "__export_date": "2026-03-19T00:00:00.000Z",
+  "__export_source": "codex.desktop",
+  "resources": [
+    {
+      "_id": "wrk_secure_url_shortener",
+      "parentId": null,
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "name": "secure-url-shortener",
+      "description": "Collection synced with the current secure-url-shortener routes.",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_secure_url_shortener",
+      "parentId": "wrk_secure_url_shortener",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "name": "Base Environment",
+      "data": {
+        "identityBaseUrl": "http://localhost:4000",
+        "shortUrlBaseUrl": "http://localhost:4001",
+        "jwtToken": "",
+        "shortUrlCode": "abc12345",
+        "username": "jane-doe",
+        "alternativeSlug": "example-page"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "identityBaseUrl",
+          "shortUrlBaseUrl",
+          "jwtToken",
+          "shortUrlCode",
+          "username",
+          "alternativeSlug"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_identity",
+      "parentId": "wrk_secure_url_shortener",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "name": "Identity",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 2,
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_short_url",
+      "parentId": "wrk_secure_url_shortener",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "name": "Short URL",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 3,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_identity_health",
+      "parentId": "fld_identity",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ identityBaseUrl }}/health",
+      "name": "Health",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_identity_register",
+      "parentId": "fld_identity",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ identityBaseUrl }}/auth/register",
+      "name": "Register",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\",\n  \"username\": \"jane-doe\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "authentication": {},
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_identity_login",
+      "parentId": "fld_identity",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ identityBaseUrl }}/auth/login",
+      "name": "Login",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securePassword123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "authentication": {},
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_identity_profile",
+      "parentId": "fld_identity",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ identityBaseUrl }}/auth/profile",
+      "name": "Profile",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwtToken }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_health",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/health",
+      "name": "Health",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_create",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/short-urls",
+      "name": "Create Short URL",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"origin\": \"https://example.test/reference\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "authentication": {},
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_list",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/short-urls",
+      "name": "List Own URLs",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwtToken }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_get_one",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/short-urls/{{ shortUrlCode }}",
+      "name": "Get URL By Code",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwtToken }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_stats",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/short-urls/{{ shortUrlCode }}/stats",
+      "name": "Get URL Stats",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwtToken }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": 5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_update",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/short-urls/{{ shortUrlCode }}",
+      "name": "Update URL Origin",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"origin\": \"https://example.test/new-destination\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwtToken }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "authentication": {},
+      "metaSortKey": 6,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_delete",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/short-urls/{{ shortUrlCode }}",
+      "name": "Delete URL",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwtToken }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": 7,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_redirect_code",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/{{ shortUrlCode }}",
+      "name": "Redirect By Code",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 8,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_short_redirect_humanized",
+      "parentId": "fld_short_url",
+      "modified": 1760000000000,
+      "created": 1760000000000,
+      "url": "{{ shortUrlBaseUrl }}/{{ username }}/{{ alternativeSlug }}",
+      "name": "Redirect Humanized",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 9,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    }
+  ]
+}
