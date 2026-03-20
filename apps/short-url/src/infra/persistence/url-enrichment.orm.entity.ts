@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 
 import { UrlOrm } from './url.orm.entity';
-import { UrlEnrichmentStatus } from '@domain/entities/url-enrichment.entity';
+import { UrlEnrichmentProvider, UrlEnrichmentStatus } from '@domain/entities/url-enrichment.entity';
 
 @Entity('url_enrichments')
 export class UrlEnrichmentOrm {
@@ -33,6 +33,9 @@ export class UrlEnrichmentOrm {
 
   @Column({ type: 'varchar', length: 120, nullable: true })
   alternativeSlug?: string | null;
+
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  provider?: UrlEnrichmentProvider | null;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   riskLevel?: string | null;

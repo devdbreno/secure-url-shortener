@@ -81,6 +81,7 @@ export class UrlRepository implements IUrlRepository {
     found.enrichment.category = null;
     found.enrichment.tags = [];
     found.enrichment.alternativeSlug = null;
+    found.enrichment.provider = null;
     found.enrichment.riskLevel = null;
     found.enrichment.enrichedAt = null;
     found.enrichment.error = null;
@@ -135,6 +136,7 @@ export class UrlRepository implements IUrlRepository {
       enrichedAt: new Date(),
       riskLevel: enrichment.riskLevel,
       alternativeSlug: enrichment.alternativeSlug,
+      provider: enrichment.provider,
     };
 
     await this.repo.manager.getRepository(UrlEnrichmentOrm).update({ urlId }, updateData);
@@ -192,6 +194,7 @@ export class UrlRepository implements IUrlRepository {
           item.enrichment.category,
           item.enrichment.tags ?? [],
           item.enrichment.alternativeSlug,
+          item.enrichment.provider ?? null,
           item.enrichment.riskLevel,
           item.enrichment.enrichedAt,
           item.enrichment.error,

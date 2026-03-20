@@ -227,6 +227,7 @@ export class UrlController {
             summary: shortUrl.enrichment.summary ?? null,
             tags: shortUrl.enrichment.tags,
             alternativeSlug: shortUrl.enrichment.alternativeSlug ?? null,
+            provider: shortUrl.enrichment.provider ?? null,
             hasHumanizedPath: Boolean(humanizedPath),
             error: shortUrl.enrichment.error ?? null,
           }

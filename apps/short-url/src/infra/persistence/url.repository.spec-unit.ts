@@ -138,6 +138,7 @@ describe('UrlRepository', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         tags: [],
+        provider: null,
         attempts: 0,
       },
     } as never);
@@ -220,6 +221,7 @@ describe('UrlRepository', () => {
         category: 'docs',
         tags: ['ai'],
         alternativeSlug: 'example-docs',
+        provider: 'gemini',
         riskLevel: 'low',
       },
       2,
@@ -253,6 +255,7 @@ describe('UrlRepository', () => {
       category: 'docs',
       tags: [],
       alternativeSlug: 'example-docs',
+      provider: 'heuristic',
       riskLevel: 'low',
     });
     await repository.failEnrichment('1', 'error');
@@ -292,6 +295,7 @@ describe('UrlRepository', () => {
         category: 'docs',
         tags: ['ai'],
         alternativeSlug: 'example-docs',
+        provider: 'gemini',
         riskLevel: 'low',
         enrichedAt: new Date(),
         error: null,
@@ -363,6 +367,7 @@ describe('UrlRepository', () => {
         category: 'docs',
         tags: null,
         alternativeSlug: 'example-docs',
+        provider: 'heuristic',
         riskLevel: 'low',
         enrichedAt: new Date(),
         error: null,

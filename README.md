@@ -9,7 +9,7 @@ Monorepo com dois microservices NestJS para encurtamento seguro de URLs, autenti
 - `Identity`: registro, login, perfil autenticado, validação JWT e resolução pública de usuário por `username`.
 - `Short-url`: criação, listagem, atualização, exclusão lógica, estatísticas e redirecionamento de links curtos.
 - Criação de link com autenticação opcional: anônimo ou associado ao usuário autenticado.
-- Enrichment assíncrono com `summary`, `category`, `tags`, `alternativeSlug` e `riskLevel`.
+- Enrichment assíncrono com `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel` e `provider`.
 - Rota humanizada baseada em `username + alternativeSlug`.
 - Página HTML de confirmação antes do redirect quando o destino é classificado com `riskLevel=high`.
 - Comunicação service-to-service via Nest TCP entre `Short-url` e `Identity`.
@@ -141,7 +141,7 @@ O fetcher:
 1. A criação da URL agenda um job BullMQ.
 2. O worker busca metadados e conteúdo da página de destino.
 3. O provider composto tenta enriquecer a URL.
-4. O resultado persiste `summary`, `category`, `tags`, `alternativeSlug` e `riskLevel`.
+4. O resultado persiste `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel` e `provider`.
 
 Arquivos centrais desse fluxo:
 
@@ -157,12 +157,12 @@ Arquivos centrais desse fluxo:
 - `PATCH /short-urls/:shortUrlCode` exige autenticação e ownership do link.
 - A URL de destino é atualizada.
 - O enrichment armazenado é limpo e volta para `pending`.
-- `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, `error` e `enrichedAt` anteriores são descartados.
+- `summary`, `category`, `tags`, `alternativeSlug`, `provider`, `riskLevel`, `error` e `enrichedAt` anteriores são descartados.
 
 ### 7. Estatísticas autenticadas
 
 - `GET /short-urls/:shortUrlCode/stats`
-- Retorna `totalClicks`, média de cliques por dia, idade do link, estado do enrichment, tentativas, `riskLevel` e disponibilidade da rota humanizada.
+- Retorna `totalClicks`, média de cliques por dia, idade do link, estado do enrichment, tentativas, `riskLevel`, `provider` e disponibilidade da rota humanizada.
 - É uma rota útil para dashboard operacional sem depender de uma tabela completa de eventos.
 
 ### 8. Redirect clássico
@@ -382,3 +382,4 @@ yarn workspace @secure-url-shortener/short-url lint
 - O schema do banco é sincronizado automaticamente fora de produção (`synchronize`).
 - O enrichment só roda quando `AI_ENRICHMENT_ENABLED=true`.
 - Com o pipeline ativo, o provider composto tenta Gemini primeiro e usa heurística se o provider principal falhar.
+- O `provider` persistido em `url_enrichments` indica qual engine gerou o enrichment final (`gemini` ou `heuristic`).

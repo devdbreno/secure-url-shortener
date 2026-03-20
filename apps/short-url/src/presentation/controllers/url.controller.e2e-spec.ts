@@ -195,6 +195,7 @@ describe('UrlController (e2e)', () => {
         summary: 'Example docs',
         tags: ['example', 'docs'],
         alternativeSlug: 'example-docs',
+        provider: 'gemini',
         error: null,
       },
     });
@@ -217,6 +218,7 @@ describe('UrlController (e2e)', () => {
       enrichment: {
         status: 'completed',
         alternativeSlug: 'example-docs',
+        provider: 'gemini',
         hasHumanizedPath: true,
       },
     });

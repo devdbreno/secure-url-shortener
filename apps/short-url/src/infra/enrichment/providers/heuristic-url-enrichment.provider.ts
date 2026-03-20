@@ -84,6 +84,7 @@ export class HeuristicUrlEnrichmentProvider implements IUrlEnrichmentProvider {
       category,
       riskLevel: 'low',
       alternativeSlug,
+      provider: 'heuristic',
     };
   }
 }

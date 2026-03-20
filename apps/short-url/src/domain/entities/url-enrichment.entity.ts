@@ -1,4 +1,5 @@
 export type UrlEnrichmentStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type UrlEnrichmentProvider = 'gemini' | 'heuristic';
 
 export class UrlEnrichment {
   constructor(
@@ -11,6 +12,7 @@ export class UrlEnrichment {
     public category?: string | null,
     public tags: string[] = [],
     public alternativeSlug?: string | null,
+    public provider?: UrlEnrichmentProvider | null,
     public riskLevel?: string | null,
     public enrichedAt?: Date | null,
     public error?: string | null,

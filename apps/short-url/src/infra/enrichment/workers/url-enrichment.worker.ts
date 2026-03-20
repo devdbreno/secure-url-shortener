@@ -46,13 +46,13 @@ export class UrlEnrichmentWorker extends WorkerHost {
         pageContent: page.content,
       });
 
-      await this.urlRepo.completeEnrichment(urlId, enrichment);
+      await this.urlRepo.completeEnrichment(urlId, enrichment, job.attemptsStarted);
 
       this.logger.log(`Successfully enriched URL ${urlId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown enrichment error.';
 
-      await this.urlRepo.failEnrichment(urlId, message);
+      await this.urlRepo.failEnrichment(urlId, message, job.attemptsStarted);
 
       this.logger.warn(`Failed to enrich URL ${urlId}: ${message}`);
 

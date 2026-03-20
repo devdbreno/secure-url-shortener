@@ -54,6 +54,7 @@ Data:
         category: result.category || 'website',
         riskLevel: ['low', 'medium', 'high'].includes(result.riskLevel) ? result.riskLevel : 'low',
         alternativeSlug: result.alternativeSlug || 'link',
+        provider: 'gemini',
       };
     } catch (e) {
       this.logger.error('Failed to parse Gemini response', e);

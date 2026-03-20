@@ -59,6 +59,7 @@ describe('GeminiUrlEnrichmentProvider', () => {
       tags: [],
       alternativeSlug: 'link',
       riskLevel: 'low',
+      provider: 'gemini',
     });
   });
 
@@ -81,6 +82,7 @@ describe('GeminiUrlEnrichmentProvider', () => {
       tags: ['ai'],
       alternativeSlug: 'example-docs',
       riskLevel: 'high',
+      provider: 'gemini',
     });
   });
 

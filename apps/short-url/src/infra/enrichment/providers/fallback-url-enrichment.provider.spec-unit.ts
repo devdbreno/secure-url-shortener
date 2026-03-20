@@ -22,9 +22,14 @@ describe('FallbackUrlEnrichmentProvider', () => {
         get: jest.fn().mockReturnValue(true),
       } as unknown as ConfigService,
       {
-        enrich: jest
-          .fn()
-          .mockResolvedValue({ summary: 'ai', category: 'docs', tags: [], alternativeSlug: 'ai', riskLevel: 'low' }),
+        enrich: jest.fn().mockResolvedValue({
+          summary: 'ai',
+          category: 'docs',
+          tags: [],
+          alternativeSlug: 'ai',
+          riskLevel: 'low',
+          provider: 'gemini',
+        }),
       } as never,
       {
         enrich: jest.fn(),
@@ -42,6 +47,7 @@ describe('FallbackUrlEnrichmentProvider', () => {
         tags: [],
         alternativeSlug: 'heuristic',
         riskLevel: 'low',
+        provider: 'heuristic',
       }),
     };
     const provider = new FallbackUrlEnrichmentProvider(
@@ -66,6 +72,7 @@ describe('FallbackUrlEnrichmentProvider', () => {
         tags: [],
         alternativeSlug: 'heuristic',
         riskLevel: 'low',
+        provider: 'heuristic',
       }),
     };
     const provider = new FallbackUrlEnrichmentProvider(

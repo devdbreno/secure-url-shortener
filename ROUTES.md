@@ -112,6 +112,7 @@ Resposta típica `200`:
     "enrichment": {
       "status": "pending",
       "tags": [],
+      "provider": null,
       "attempts": 0
     }
   }
@@ -150,6 +151,7 @@ Resposta típica `201`:
   "enrichment": {
     "status": "pending",
     "tags": [],
+    "provider": null,
     "attempts": 0
   }
 }
@@ -196,6 +198,7 @@ Resposta típica `200`:
     "summary": "Page summary",
     "tags": ["docs", "api"],
     "alternativeSlug": "example-page",
+    "provider": "gemini",
     "hasHumanizedPath": true,
     "error": null
   }
@@ -225,6 +228,7 @@ Comportamento:
 - exige ownership do link;
 - atualiza `origin`;
 - limpa os dados anteriores de enrichment;
+- limpa também o `provider` anterior;
 - mantém o enrichment em `pending` com `attempts=0`.
 
 Resposta típica `200`:
@@ -241,6 +245,7 @@ Resposta típica `200`:
   "enrichment": {
     "status": "pending",
     "tags": [],
+    "provider": null,
     "attempts": 0
   }
 }
@@ -293,8 +298,8 @@ Comportamento:
 
 Exemplos:
 
-- `/jane-doe/openai-docs`
-- `/jane-doe/openai-docs?proceed=1`
+- `/jane-doe/example-docs`
+- `/jane-doe/example-docs?proceed=1`
 
 ## Página de alerta para links de alto risco
 

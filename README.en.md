@@ -9,7 +9,7 @@ Monorepo with two NestJS microservices for secure URL shortening, authentication
 - `Identity`: registration, login, authenticated profile, JWT validation, and public user lookup by `username`.
 - `Short-url`: short-link creation, listing, update, soft deletion, stats, and redirect flows.
 - Link creation with optional authentication: anonymous or tied to the authenticated user.
-- Asynchronous enrichment with `summary`, `category`, `tags`, `alternativeSlug`, and `riskLevel`.
+- Asynchronous enrichment with `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, and `provider`.
 - Human-friendly route based on `username + alternativeSlug`.
 - HTML confirmation screen before redirect when the destination is classified with `riskLevel=high`.
 - Service-to-service communication through Nest TCP between `Short-url` and `Identity`.
@@ -141,7 +141,7 @@ The fetcher:
 1. URL creation schedules a BullMQ job.
 2. The worker fetches destination metadata and page content.
 3. The composed provider tries to enrich the URL.
-4. The result persists `summary`, `category`, `tags`, `alternativeSlug`, and `riskLevel`.
+4. The result persists `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, and `provider`.
 
 Core files in this flow:
 
@@ -157,12 +157,12 @@ Core files in this flow:
 - `PATCH /short-urls/:shortUrlCode` requires authentication and link ownership.
 - The origin URL is updated.
 - Stored enrichment is cleared and set back to `pending`.
-- Previous `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, `error`, and `enrichedAt` values are discarded.
+- Previous `summary`, `category`, `tags`, `alternativeSlug`, `provider`, `riskLevel`, `error`, and `enrichedAt` values are discarded.
 
 ### 7. Authenticated stats
 
 - `GET /short-urls/:shortUrlCode/stats`
-- Returns `totalClicks`, average clicks per day, link age, enrichment state, attempts, `riskLevel`, and whether the humanized route is available.
+- Returns `totalClicks`, average clicks per day, link age, enrichment state, attempts, `riskLevel`, `provider`, and whether the humanized route is available.
 - Useful for an operational dashboard without requiring a full events table.
 
 ### 8. Classic redirect
@@ -382,3 +382,4 @@ yarn workspace @secure-url-shortener/short-url lint
 - The database schema is synchronized automatically outside production (`synchronize`).
 - Enrichment only runs when `AI_ENRICHMENT_ENABLED=true`.
 - With the pipeline enabled, the composed provider tries Gemini first and falls back to heuristics if the primary provider fails.
+- The persisted `provider` in `url_enrichments` shows which engine produced the final enrichment (`gemini` or `heuristic`).

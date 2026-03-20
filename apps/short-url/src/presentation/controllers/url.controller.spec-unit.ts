@@ -105,6 +105,7 @@ describe('UrlController', () => {
         summary: 'Example docs',
         tags: ['example', 'docs'],
         alternativeSlug: 'example-docs',
+        provider: 'gemini',
         error: null,
       },
     });
@@ -125,6 +126,7 @@ describe('UrlController', () => {
       enrichment: {
         status: 'completed',
         alternativeSlug: 'example-docs',
+        provider: 'gemini',
         hasHumanizedPath: true,
       },
     });
@@ -182,6 +184,7 @@ describe('UrlController', () => {
         summary: null,
         tags: [],
         alternativeSlug: null,
+        provider: null,
         error: null,
       },
     });
@@ -197,6 +200,7 @@ describe('UrlController', () => {
       summary: null,
       tags: [],
       alternativeSlug: null,
+      provider: null,
       hasHumanizedPath: false,
       error: null,
     });

@@ -12,6 +12,7 @@ describe('HeuristicUrlEnrichmentProvider', () => {
 
     expect(result.category).toBe('video');
     expect(result.alternativeSlug).toContain('video');
+    expect(result.provider).toBe('heuristic');
     expect(result.tags.length).toBeGreaterThan(0);
   });
 
