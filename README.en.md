@@ -7,7 +7,7 @@ Monorepo with two NestJS microservices for secure URL shortening, authentication
 ## What the project delivers
 
 - `Identity`: registration, login, authenticated profile, JWT validation, and public user lookup by `username`.
-- `Short-url`: short-link creation, listing, single-item lookup, update, soft deletion, stats, and redirect flows.
+- `Short-url`: short-link creation, user-scoped listing, single-item lookup, update, soft deletion, stats, and redirect flows.
 - Link creation with optional authentication: anonymous or tied to the authenticated user.
 - Asynchronous enrichment with `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, and `provider`.
 - Human-friendly route based on `username + alternativeSlug`.
@@ -91,6 +91,7 @@ Responsible for:
 - keeping optional ownership for authenticated users;
 - listing links owned by the authenticated user;
 - retrieving one specific link owned by the authenticated user;
+- allowing single-item lookup and stats for anonymous links without authentication;
 - updating the destination and clearing previous enrichment data;
 - soft deleting links;
 - enriching destinations in the background;

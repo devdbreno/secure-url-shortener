@@ -40,14 +40,30 @@ describe('GetShortUrlStatsUseCase', () => {
   it('returns the user-owned url for stats', async () => {
     const url = new Url('1', 'https://example.test', 8, 'user-id', 'abc12345', new Date(), new Date(), null, null);
 
-    urlRepoMock.findByCodeAndUserId.mockResolvedValueOnce(url);
+    urlRepoMock.findByCode.mockResolvedValueOnce(url);
 
-    await expect(getShortUrlStatsUseCase.execute('user-id', 'abc12345')).resolves.toBe(url);
+    await expect(getShortUrlStatsUseCase.execute('abc12345', 'user-id')).resolves.toBe(url);
+  });
+
+  it('returns an anonymous url for stats without authentication', async () => {
+    const url = new Url('1', 'https://example.test', 8, null, 'abc12345', new Date(), new Date(), null, null);
+
+    urlRepoMock.findByCode.mockResolvedValueOnce(url);
+
+    await expect(getShortUrlStatsUseCase.execute('abc12345')).resolves.toBe(url);
+  });
+
+  it('throws when the url belongs to another user', async () => {
+    const url = new Url('1', 'https://example.test', 8, 'owner-id', 'abc12345', new Date(), new Date(), null, null);
+
+    urlRepoMock.findByCode.mockResolvedValueOnce(url);
+
+    await expect(getShortUrlStatsUseCase.execute('abc12345', 'other-user')).rejects.toThrow(NotFoundException);
   });
 
   it('throws when the url is missing or inactive', async () => {
-    urlRepoMock.findByCodeAndUserId.mockResolvedValueOnce(null);
+    urlRepoMock.findByCode.mockResolvedValueOnce(null);
 
-    await expect(getShortUrlStatsUseCase.execute('user-id', 'missing01')).rejects.toThrow(NotFoundException);
+    await expect(getShortUrlStatsUseCase.execute('missing01', 'user-id')).rejects.toThrow(NotFoundException);
   });
 });

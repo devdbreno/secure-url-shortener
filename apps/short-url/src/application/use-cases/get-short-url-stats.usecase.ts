@@ -8,10 +8,10 @@ import { IUrlRepository } from '@domain/repositories/url.repository';
 export class GetShortUrlStatsUseCase {
   constructor(@Inject(URL_REPOSITORY) private readonly urlRepo: IUrlRepository) {}
 
-  public async execute(userId: string, code: string): Promise<Url> {
-    const shortUrl = await this.urlRepo.findByCodeAndUserId(code, userId);
+  public async execute(code: string, userId?: string | null): Promise<Url> {
+    const shortUrl = await this.urlRepo.findByCode(code);
 
-    if (!shortUrl || shortUrl.deletedAt) {
+    if (!shortUrl || shortUrl.deletedAt || (shortUrl.userId && shortUrl.userId !== userId)) {
       throw new NotFoundException('Shortened URL not found or inactive!');
     }
 

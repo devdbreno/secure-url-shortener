@@ -7,7 +7,7 @@ Monorepo com dois microservices NestJS para encurtamento seguro de URLs, autenti
 ## O que o projeto entrega
 
 - `Identity`: registro, login, perfil autenticado, validação JWT e resolução pública de usuário por `username`.
-- `Short-url`: criação, listagem, consulta unitária, atualização, exclusão lógica, estatísticas e redirecionamento de links curtos.
+- `Short-url`: criação, listagem do usuário, consulta unitária, atualização, exclusão lógica, estatísticas e redirecionamento de links curtos.
 - Criação de link com autenticação opcional: anônimo ou associado ao usuário autenticado.
 - Enrichment assíncrono com `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel` e `provider`.
 - Rota humanizada baseada em `username + alternativeSlug`.
@@ -91,6 +91,7 @@ Responsável por:
 - manter ownership opcional por usuário autenticado;
 - listar links do usuário autenticado;
 - consultar um link específico do usuário autenticado;
+- permitir consulta unitária e stats de links anônimos sem autenticação;
 - atualizar destino e limpar o enrichment anterior;
 - excluir links logicamente;
 - enriquecer destinos em background;
