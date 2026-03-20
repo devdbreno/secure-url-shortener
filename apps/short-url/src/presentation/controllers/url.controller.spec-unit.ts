@@ -65,7 +65,7 @@ describe('UrlController', () => {
           category: 'documentation',
           summary: 'Example docs',
           tags: ['example', 'docs'],
-          alternativeSlug: 'example-docs',
+          alternativeSlug: 'example-docs-1',
           provider: 'gemini',
           error: null,
         },
@@ -80,7 +80,7 @@ describe('UrlController', () => {
         code: 'abc12345',
         publicPaths: {
           shortened: '/abc12345',
-          humanized: '/test-user/example-docs',
+          humanized: '/test-user/example-docs-1',
         },
         enrichment: expect.objectContaining({
           provider: 'gemini',
@@ -114,7 +114,7 @@ describe('UrlController', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -128,7 +128,7 @@ describe('UrlController', () => {
       code: 'abc12345',
       publicPaths: {
         shortened: '/abc12345',
-        humanized: '/test-user/example-docs',
+        humanized: '/test-user/example-docs-1',
       },
       enrichment: {
         provider: 'gemini',
@@ -158,7 +158,7 @@ describe('UrlController', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -232,7 +232,7 @@ describe('UrlController', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -246,14 +246,14 @@ describe('UrlController', () => {
       code: 'abc12345',
       publicPaths: {
         shortened: '/abc12345',
-        humanized: '/test-user/example-docs',
+        humanized: '/test-user/example-docs-1',
       },
       visitMetrics: {
         totalClicks: 8,
       },
       enrichment: {
         status: 'completed',
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         hasHumanizedPath: true,
       },
@@ -281,7 +281,7 @@ describe('UrlController', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -465,11 +465,11 @@ describe('UrlController', () => {
       enrichment: null,
     });
 
-    await expect(controller.redirectHumanized(reply as never, 'test-user', 'example-docs', undefined)).resolves.toBe(
+    await expect(controller.redirectHumanized(reply as never, 'test-user', 'example-docs-1', undefined)).resolves.toBe(
       'redirected',
     );
     expect(identityClient.findUserByUsername).toHaveBeenCalledWith('test-user');
-    expect(redirectUrlUseCase.executeHumanized).toHaveBeenCalledWith('user-id', 'example-docs');
+    expect(redirectUrlUseCase.executeHumanized).toHaveBeenCalledWith('user-id', 'example-docs-1');
     expect(redirectUrlUseCase.trackVisit).toHaveBeenCalledWith('url-id');
     expect(reply.status).toHaveBeenCalledWith(302);
     expect(reply.redirect).toHaveBeenCalledWith('https://docs.example.test/reference');
@@ -497,11 +497,11 @@ describe('UrlController', () => {
       },
     });
 
-    await expect(controller.redirectHumanized(reply as never, 'test-user', 'example-docs', undefined)).resolves.toBe(
+    await expect(controller.redirectHumanized(reply as never, 'test-user', 'example-docs-1', undefined)).resolves.toBe(
       'warning-page',
     );
     expect(redirectUrlUseCase.trackVisit).not.toHaveBeenCalled();
-    expect(reply.send.mock.calls[0][0]).toContain('/test-user/example-docs?proceed=1');
+    expect(reply.send.mock.calls[0][0]).toContain('/test-user/example-docs-1?proceed=1');
   });
 
   it('throws not found when the username cannot be resolved in the humanized route', async () => {
@@ -518,7 +518,7 @@ describe('UrlController', () => {
     } as never);
 
     await expect(
-      controller.redirectHumanized(reply as never, 'missing-user', 'example-docs', undefined),
+      controller.redirectHumanized(reply as never, 'missing-user', 'example-docs-1', undefined),
     ).rejects.toThrow(NotFoundException);
     expect(redirectUrlUseCase.executeHumanized).not.toHaveBeenCalled();
     expect(redirectUrlUseCase.trackVisit).not.toHaveBeenCalled();

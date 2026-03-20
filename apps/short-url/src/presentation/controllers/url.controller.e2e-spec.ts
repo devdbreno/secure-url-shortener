@@ -148,7 +148,7 @@ describe('UrlController (e2e)', () => {
           category: 'documentation',
           summary: 'Example docs',
           tags: ['example', 'docs'],
-          alternativeSlug: 'example-docs',
+          alternativeSlug: 'example-docs-1',
           provider: 'gemini',
           error: null,
         },
@@ -164,7 +164,7 @@ describe('UrlController (e2e)', () => {
         code: 'abc12345',
         publicPaths: {
           shortened: '/abc12345',
-          humanized: '/test-user/example-docs',
+          humanized: '/test-user/example-docs-1',
         },
         enrichment: {
           provider: 'gemini',
@@ -194,7 +194,7 @@ describe('UrlController (e2e)', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -210,7 +210,7 @@ describe('UrlController (e2e)', () => {
       code: 'abc12345',
       publicPaths: {
         shortened: '/abc12345',
-        humanized: '/test-user/example-docs',
+        humanized: '/test-user/example-docs-1',
       },
       enrichment: {
         provider: 'gemini',
@@ -238,7 +238,7 @@ describe('UrlController (e2e)', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -323,7 +323,7 @@ describe('UrlController (e2e)', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -339,14 +339,14 @@ describe('UrlController (e2e)', () => {
       code: 'abc12345',
       publicPaths: {
         shortened: '/abc12345',
-        humanized: '/test-user/example-docs',
+        humanized: '/test-user/example-docs-1',
       },
       visitMetrics: {
         totalClicks: 8,
       },
       enrichment: {
         status: 'completed',
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         hasHumanizedPath: true,
       },
@@ -372,7 +372,7 @@ describe('UrlController (e2e)', () => {
         category: 'documentation',
         summary: 'Example docs',
         tags: ['example', 'docs'],
-        alternativeSlug: 'example-docs',
+        alternativeSlug: 'example-docs-1',
         provider: 'gemini',
         error: null,
       },
@@ -482,12 +482,12 @@ describe('UrlController (e2e)', () => {
 
     redirectShortUrlUseCase.trackVisit.mockResolvedValueOnce(undefined);
 
-    const response = await request(app.getHttpServer()).get('/test-user/example-docs');
+    const response = await request(app.getHttpServer()).get('/test-user/example-docs-1');
 
     expect(response.status).toBe(HttpStatus.FOUND);
     expect(response.headers.location).toBe('https://docs.example.test/reference');
     expect(identityClient.findUserByUsername.mock.calls).toEqual([['test-user']]);
-    expect(redirectShortUrlUseCase.executeHumanized.mock.calls).toEqual([['user-id', 'example-docs']]);
+    expect(redirectShortUrlUseCase.executeHumanized.mock.calls).toEqual([['user-id', 'example-docs-1']]);
     expect(redirectShortUrlUseCase.trackVisit.mock.calls).toEqual([['url-id']]);
   });
 
@@ -506,11 +506,11 @@ describe('UrlController (e2e)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer()).get('/test-user/example-docs');
+    const response = await request(app.getHttpServer()).get('/test-user/example-docs-1');
 
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.headers['content-type']).toContain('text/html');
-    expect(response.text).toContain('/test-user/example-docs?proceed=1');
+    expect(response.text).toContain('/test-user/example-docs-1?proceed=1');
     expect(redirectShortUrlUseCase.trackVisit).not.toHaveBeenCalled();
   });
 });

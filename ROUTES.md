@@ -140,7 +140,7 @@ Resposta típica `200`:
     "deletedAt": null,
     "publicPaths": {
       "shortened": "/abc12345",
-      "humanized": "/jane-doe/example-page"
+      "humanized": "/jane-doe/example-page-1"
     },
     "enrichment": {
       "status": "completed",
@@ -150,7 +150,7 @@ Resposta típica `200`:
       "category": "documentation",
       "summary": "Page summary",
       "tags": ["docs", "api"],
-      "alternativeSlug": "example-page",
+      "alternativeSlug": "example-page-1",
       "provider": "gemini",
       "hasHumanizedPath": true,
       "error": null
@@ -174,6 +174,7 @@ Comportamento:
 - se o link for anônimo (`userId=null`), a rota pode ser consultada sem autenticação;
 - se o link pertencer a um usuário, a rota só retorna dados para o dono autenticado;
 - inclui `publicPaths.shortened` e `publicPaths.humanized` quando a rota humanizada estiver disponível.
+- o `alternativeSlug` é sempre persistido como `slug-N`, começando em `-1` e incrementando por usuário quando houver nova colisão do mesmo slug-base.
 
 Resposta típica `200`:
 
@@ -189,7 +190,7 @@ Resposta típica `200`:
   "deletedAt": null,
   "publicPaths": {
     "shortened": "/abc12345",
-    "humanized": "/jane-doe/example-page"
+    "humanized": "/jane-doe/example-page-1"
   },
   "enrichment": {
     "status": "completed",
@@ -199,7 +200,7 @@ Resposta típica `200`:
     "category": "documentation",
     "summary": "Page summary",
     "tags": ["docs", "api"],
-    "alternativeSlug": "example-page",
+    "alternativeSlug": "example-page-1",
     "provider": "gemini",
     "hasHumanizedPath": true,
     "error": null
@@ -260,6 +261,7 @@ Comportamento:
 - se o link for anônimo (`userId=null`), a rota pode ser consultada sem autenticação;
 - se o link pertencer a um usuário, a rota só retorna dados para o dono autenticado;
 - retorna também `publicPaths.shortened` e `publicPaths.humanized` quando existir rota humanizada.
+- o `alternativeSlug` é persistido como `slug-N`, começando em `-1` e mantido único por usuário durante a persistência do enrichment.
 
 Resposta típica `200`:
 
@@ -270,7 +272,7 @@ Resposta típica `200`:
   "origin": "https://example.com/some/path",
   "publicPaths": {
     "shortened": "/abc12345",
-    "humanized": "/jane-doe/example-page"
+    "humanized": "/jane-doe/example-page-1"
   },
   "visitMetrics": {
     "totalClicks": 42,
@@ -291,7 +293,7 @@ Resposta típica `200`:
     "category": "documentation",
     "summary": "Page summary",
     "tags": ["docs", "api"],
-    "alternativeSlug": "example-page",
+    "alternativeSlug": "example-page-1",
     "provider": "gemini",
     "hasHumanizedPath": true,
     "error": null
@@ -387,13 +389,13 @@ Redirect humanizado baseado no usuário dono da URL e no `alternativeSlug` gerad
 Comportamento:
 
 - resolve `username` no service `identity`;
-- busca a URL do usuário com o `alternativeSlug`;
+- busca a URL do usuário com o `alternativeSlug`, persistido como `slug-N` e com unicidade por usuário;
 - aplica a mesma regra de alerta para `riskLevel=high`.
 
 Exemplos:
 
-- `/jane-doe/example-docs`
-- `/jane-doe/example-docs?proceed=1`
+- `/jane-doe/example-docs-1`
+- `/jane-doe/example-docs-1?proceed=1`
 
 ## Página de alerta para links de alto risco
 

@@ -18,6 +18,16 @@ type MockQueryBuilder = {
   getMany: jest.Mock<Promise<PendingEnrichment[]>, []>;
 };
 
+type MockAlternativeSlugQueryBuilder = {
+  innerJoin: jest.Mock<MockAlternativeSlugQueryBuilder, [string, string]>;
+  select: jest.Mock<MockAlternativeSlugQueryBuilder, [string, string]>;
+  where: jest.Mock<MockAlternativeSlugQueryBuilder, [string, object]>;
+  andWhere: jest.Mock<MockAlternativeSlugQueryBuilder, [string, object?]>;
+  orderBy: jest.Mock<MockAlternativeSlugQueryBuilder, [string, 'ASC' | 'DESC']>;
+  addOrderBy: jest.Mock<MockAlternativeSlugQueryBuilder, [string, 'ASC' | 'DESC']>;
+  getRawOne: jest.Mock<Promise<{ alternativeSlug: string | null } | null>, []>;
+};
+
 type MockEnrichmentRepository = {
   createQueryBuilder: jest.Mock<MockQueryBuilder, [string]>;
   save: jest.Mock<Promise<PendingEnrichment[]>, [PendingEnrichment[]]>;
@@ -46,6 +56,15 @@ describe('UrlRepository', () => {
       setOnLocked: jest.fn().mockReturnThis(),
       getMany: jest.fn(),
     };
+    const alternativeSlugQueryBuilder: MockAlternativeSlugQueryBuilder = {
+      innerJoin: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn().mockResolvedValue(null),
+    };
     const enrichmentRepository: MockEnrichmentRepository = {
       createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
       save: jest.fn().mockResolvedValue([]),
@@ -63,10 +82,12 @@ describe('UrlRepository', () => {
       increment: jest.fn(),
       findOne: jest.fn(),
       find: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue(alternativeSlugQueryBuilder),
       manager,
     } as unknown as MockOrmRepository;
 
     return {
+      alternativeSlugQueryBuilder,
       ormRepository,
       manager,
       enrichmentRepository,
@@ -212,7 +233,13 @@ describe('UrlRepository', () => {
   });
 
   it('updates enrichment success and failure states', async () => {
-    const { repository, manager, enrichmentRepository } = createRepository();
+    const { repository, manager, enrichmentRepository, ormRepository, alternativeSlugQueryBuilder } = createRepository();
+
+    ormRepository.findOne.mockResolvedValueOnce({
+      id: '1',
+      userId: 'user-id',
+    } as never);
+    alternativeSlugQueryBuilder.getRawOne.mockResolvedValueOnce(null);
 
     await repository.completeEnrichment(
       '1',
@@ -233,6 +260,7 @@ describe('UrlRepository', () => {
       expect.objectContaining({
         status: 'completed',
         attempts: 2,
+        alternativeSlug: 'example-docs-1',
         error: null,
       }),
     ]);
@@ -248,7 +276,13 @@ describe('UrlRepository', () => {
   });
 
   it('uses zero attempts when enrichment updates do not receive an attempts value', async () => {
-    const { repository, enrichmentRepository } = createRepository();
+    const { repository, enrichmentRepository, ormRepository, alternativeSlugQueryBuilder } = createRepository();
+
+    ormRepository.findOne.mockResolvedValueOnce({
+      id: '1',
+      userId: 'user-id',
+    } as never);
+    alternativeSlugQueryBuilder.getRawOne.mockResolvedValueOnce(null);
 
     await repository.completeEnrichment('1', {
       summary: 'summary',
@@ -262,7 +296,7 @@ describe('UrlRepository', () => {
 
     expect(enrichmentRepository.update.mock.calls[0]).toEqual([
       { urlId: '1' },
-      expect.objectContaining({ attempts: 0 }),
+      expect.objectContaining({ attempts: 0, alternativeSlug: 'example-docs-1' }),
     ]);
     expect(enrichmentRepository.update.mock.calls[1]).toEqual([
       { urlId: '1' },
@@ -390,5 +424,112 @@ describe('UrlRepository', () => {
 
     expect(ormRepository.softDelete.mock.calls).toEqual([[{ id: '1' }]]);
     expect(ormRepository.increment.mock.calls).toEqual([[{ id: '1' }, 'clicks', 1]]);
+  });
+
+  it('assigns the next numeric suffix from the latest slug of the same user', async () => {
+    const { repository, enrichmentRepository, ormRepository, alternativeSlugQueryBuilder } = createRepository();
+
+    ormRepository.findOne.mockResolvedValueOnce({
+      id: '1',
+      userId: 'user-id',
+    } as never);
+    alternativeSlugQueryBuilder.getRawOne.mockResolvedValueOnce({
+      alternativeSlug: 'example-docs-2',
+    });
+
+    await repository.completeEnrichment('1', {
+      summary: 'summary',
+      category: 'docs',
+      tags: ['ai'],
+      alternativeSlug: 'example-docs',
+      provider: 'gemini',
+      riskLevel: 'low',
+    });
+
+    expect(enrichmentRepository.update).toHaveBeenCalledWith(
+      { urlId: '1' },
+      expect.objectContaining({
+        alternativeSlug: 'example-docs-3',
+      }),
+    );
+  });
+
+  it('uses the -1 suffix for anonymous urls without querying user collisions', async () => {
+    const { repository, enrichmentRepository, ormRepository } = createRepository();
+
+    ormRepository.findOne.mockResolvedValueOnce({
+      id: '1',
+      userId: null,
+    } as never);
+
+    await repository.completeEnrichment('1', {
+      summary: 'summary',
+      category: 'docs',
+      tags: ['ai'],
+      alternativeSlug: 'example-docs',
+      provider: 'gemini',
+      riskLevel: 'low',
+    });
+
+    expect(ormRepository.createQueryBuilder).not.toHaveBeenCalled();
+    expect(enrichmentRepository.update).toHaveBeenCalledWith(
+      { urlId: '1' },
+      expect.objectContaining({
+        alternativeSlug: 'example-docs-1',
+      }),
+    );
+  });
+
+  it('falls back to link-1 when the provider slug is blank', async () => {
+    const { repository, enrichmentRepository, ormRepository } = createRepository();
+
+    ormRepository.findOne.mockResolvedValueOnce({
+      id: '1',
+      userId: null,
+    } as never);
+
+    await repository.completeEnrichment('1', {
+      summary: 'summary',
+      category: 'docs',
+      tags: ['ai'],
+      alternativeSlug: '   ',
+      provider: 'heuristic',
+      riskLevel: 'low',
+    });
+
+    expect(enrichmentRepository.update).toHaveBeenCalledWith(
+      { urlId: '1' },
+      expect.objectContaining({
+        alternativeSlug: 'link-1',
+      }),
+    );
+  });
+
+  it('starts at suffix 1 when a legacy slug without numeric suffix is returned', async () => {
+    const { repository, enrichmentRepository, ormRepository, alternativeSlugQueryBuilder } = createRepository();
+
+    ormRepository.findOne.mockResolvedValueOnce({
+      id: '1',
+      userId: 'user-id',
+    } as never);
+    alternativeSlugQueryBuilder.getRawOne.mockResolvedValueOnce({
+      alternativeSlug: 'legacy-slug',
+    });
+
+    await repository.completeEnrichment('1', {
+      summary: 'summary',
+      category: 'docs',
+      tags: ['ai'],
+      alternativeSlug: 'example-docs',
+      provider: 'gemini',
+      riskLevel: 'low',
+    });
+
+    expect(enrichmentRepository.update).toHaveBeenCalledWith(
+      { urlId: '1' },
+      expect.objectContaining({
+        alternativeSlug: 'example-docs-1',
+      }),
+    );
   });
 });

@@ -10,7 +10,7 @@ Monorepo with two NestJS microservices for secure URL shortening, authentication
 - `Short-url`: short-link creation, user-scoped listing, single-item lookup by code, update, soft deletion, stats, and redirect flows.
 - Link creation with optional authentication: anonymous or tied to the authenticated user.
 - Asynchronous enrichment with `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, and `provider`.
-- Human-friendly route based on `username + alternativeSlug`.
+- Human-friendly route based on `username + alternativeSlug`, persisted as `slug-N` and kept unique per user.
 - HTML confirmation screen before redirect when the destination is classified with `riskLevel=high`.
 - Service-to-service communication through Nest TCP between `Short-url` and `Identity`.
 
@@ -146,6 +146,7 @@ The fetcher:
 2. The worker fetches destination metadata and page content.
 3. The composed provider tries to enrich the URL.
 4. The result persists `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel`, and `provider`.
+5. The `alternativeSlug` is always persisted with a numeric suffix, starting at `-1` and incrementing per user when the same slug base appears again.
 
 Core files in this flow:
 
@@ -180,7 +181,7 @@ Core files in this flow:
 
 - `GET /:username/:alternativeSlug`
 - Resolves `username` in `identity`.
-- Finds the owner URL whose enrichment produced the `alternativeSlug`.
+- Finds the owner URL whose enrichment produced the `alternativeSlug`, persisted as `slug-N` and kept unique per user.
 - Applies the same security rule as the classic redirect.
 
 ## Service communication

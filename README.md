@@ -10,7 +10,7 @@ Monorepo com dois microservices NestJS para encurtamento seguro de URLs, autenti
 - `Short-url`: criação, listagem do usuário, consulta unitária por código, atualização, exclusão lógica, estatísticas e redirecionamento de links curtos.
 - Criação de link com autenticação opcional: anônimo ou associado ao usuário autenticado.
 - Enrichment assíncrono com `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel` e `provider`.
-- Rota humanizada baseada em `username + alternativeSlug`.
+- Rota humanizada baseada em `username + alternativeSlug`, persistida no formato `slug-N` com unicidade por usuário.
 - Página HTML de confirmação antes do redirect quando o destino é classificado com `riskLevel=high`.
 - Comunicação service-to-service via Nest TCP entre `Short-url` e `Identity`.
 
@@ -146,6 +146,7 @@ O fetcher:
 2. O worker busca metadados e conteúdo da página de destino.
 3. O provider composto tenta enriquecer a URL.
 4. O resultado persiste `summary`, `category`, `tags`, `alternativeSlug`, `riskLevel` e `provider`.
+5. O `alternativeSlug` é sempre persistido com sufixo numérico, começando em `-1` e incrementando por usuário quando houver novas colisões do mesmo slug-base.
 
 Arquivos centrais desse fluxo:
 
@@ -180,7 +181,7 @@ Arquivos centrais desse fluxo:
 
 - `GET /:username/:alternativeSlug`
 - Resolve o `username` no `identity`.
-- Busca a URL do dono cujo enrichment produziu o `alternativeSlug`.
+- Busca a URL do dono cujo enrichment produziu o `alternativeSlug`, persistido como `slug-N` e mantido único por usuário.
 - Aplica a mesma regra de segurança do redirect clássico.
 
 ## Comunicação entre serviços

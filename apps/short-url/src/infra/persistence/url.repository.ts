@@ -126,6 +126,8 @@ export class UrlRepository implements IUrlRepository {
   }
 
   public async completeEnrichment(urlId: string, enrichment: UrlEnrichmentOutput, attempts?: number): Promise<void> {
+    const alternativeSlug = await this.buildAlternativeSlug(urlId, enrichment.alternativeSlug);
+
     const updateData: Partial<UrlEnrichmentOrm> = {
       error: null,
       tags: enrichment.tags,
@@ -135,7 +137,7 @@ export class UrlRepository implements IUrlRepository {
       attempts: attempts ?? 0,
       enrichedAt: new Date(),
       riskLevel: enrichment.riskLevel,
-      alternativeSlug: enrichment.alternativeSlug,
+      alternativeSlug,
       provider: enrichment.provider,
     };
 
@@ -180,6 +182,59 @@ export class UrlRepository implements IUrlRepository {
     if (!found) return null;
 
     return this.toDomain(found);
+  }
+
+  private async buildAlternativeSlug(urlId: string, alternativeSlug: string): Promise<string> {
+    const baseSlug = this.normalizeAlternativeSlugBase(alternativeSlug);
+    const targetUrl = await this.repo.findOne({ where: { id: urlId } });
+
+    if (!targetUrl?.userId) {
+      return this.appendAlternativeSlugSuffix(baseSlug, 1);
+    }
+
+    const latestAlternativeSlug = await this.findLatestAlternativeSlugForUser(urlId, targetUrl.userId, baseSlug);
+    const latestSuffix = latestAlternativeSlug ? this.extractAlternativeSlugSuffix(latestAlternativeSlug) : 0;
+
+    return this.appendAlternativeSlugSuffix(baseSlug, latestSuffix + 1);
+  }
+
+  private async findLatestAlternativeSlugForUser(urlId: string, userId: string, baseSlug: string): Promise<string | null> {
+    const suffixPattern = `^${this.escapeRegex(baseSlug)}-(\\d+)$`;
+    const lastItem = await this.repo
+      .createQueryBuilder('url')
+      .innerJoin('url.enrichment', 'enrichment')
+      .select('enrichment.alternativeSlug', 'alternativeSlug')
+      .where('url.userId = :userId', { userId })
+      .andWhere('url.deletedAt IS NULL')
+      .andWhere('url.id != :urlId', { urlId })
+      .andWhere('enrichment.alternativeSlug ~ :suffixPattern', { suffixPattern })
+      .orderBy("CAST(SUBSTRING(enrichment.alternativeSlug FROM '.*-(\\d+)$') AS INTEGER)", 'DESC')
+      .addOrderBy('enrichment.updatedAt', 'DESC')
+      .getRawOne<{ alternativeSlug: string | null }>();
+
+    return lastItem?.alternativeSlug ?? null;
+  }
+
+  private normalizeAlternativeSlugBase(alternativeSlug: string) {
+    const normalized = alternativeSlug.trim().toLowerCase();
+
+    return normalized ? normalized.slice(0, 120) : 'link';
+  }
+
+  private appendAlternativeSlugSuffix(baseSlug: string, suffix: number) {
+    const suffixLabel = `-${suffix}`;
+
+    return `${baseSlug.slice(0, Math.max(120 - suffixLabel.length, 0))}${suffixLabel}`;
+  }
+
+  private extractAlternativeSlugSuffix(alternativeSlug: string) {
+    const match = alternativeSlug.match(/-(\d+)$/);
+
+    return match ? Number(match[1]) : 0;
+  }
+
+  private escapeRegex(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   private toDomain(item: UrlOrm) {
