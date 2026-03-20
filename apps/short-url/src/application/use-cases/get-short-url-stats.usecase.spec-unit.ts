@@ -38,7 +38,7 @@ describe('GetShortUrlStatsUseCase', () => {
   });
 
   it('returns the user-owned url for stats', async () => {
-    const url = new Url('1', 'https://openai.com', 8, 'user-id', 'abc12345', new Date(), new Date(), null, null);
+    const url = new Url('1', 'https://example.test', 8, 'user-id', 'abc12345', new Date(), new Date(), null, null);
 
     urlRepoMock.findByCodeAndUserId.mockResolvedValueOnce(url);
 

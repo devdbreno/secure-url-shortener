@@ -38,7 +38,7 @@ describe('SoftDeleteShortUrlUseCase', () => {
   });
 
   it('soft deletes the url when it belongs to the user', async () => {
-    const url = new Url('1', 'https://openai.com', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
+    const url = new Url('1', 'https://example.test', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
 
     urlRepoMock.findByCodeAndUserId.mockResolvedValueOnce(url);
 

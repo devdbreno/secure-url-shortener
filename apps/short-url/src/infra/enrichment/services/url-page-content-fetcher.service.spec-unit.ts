@@ -69,14 +69,15 @@ describe('UrlPageContentFetcherService', () => {
 
     const service = createService();
 
-    await expect(service.fetch('https://openai.com/api')).resolves.toEqual({
-      title: 'openai.com',
-      content: 'openai.com /api',
+    await expect(service.fetch('https://api.example.test/metadata')).resolves.toEqual({
+      title: 'api.example.test',
+      content: 'api.example.test /metadata',
       description: null,
     });
+
     expect(mockImpitFetch).toHaveBeenCalledTimes(1);
     expect(loggerWarnSpy).toHaveBeenCalledWith(
-      'Origin returned application/json for https://openai.com/api, expected text/html.',
+      'Origin returned application/json for https://api.example.test/metadata, expected text/html.',
     );
   });
 
@@ -89,13 +90,16 @@ describe('UrlPageContentFetcherService', () => {
 
     const service = createService();
 
-    await expect(service.fetch('https://openai.com/api')).resolves.toEqual({
-      title: 'openai.com',
-      content: 'openai.com /api',
+    await expect(service.fetch('https://api.example.test/metadata')).resolves.toEqual({
+      title: 'api.example.test',
+      content: 'api.example.test /metadata',
       description: null,
     });
+
     expect(mockImpitFetch).toHaveBeenCalledTimes(1);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Origin returned  for https://openai.com/api, expected text/html.');
+    expect(loggerWarnSpy).toHaveBeenCalledWith(
+      'Origin returned  for https://api.example.test/metadata, expected text/html.',
+    );
   });
 
   it('extracts title, description and cleaned content from html', async () => {
@@ -106,17 +110,18 @@ describe('UrlPageContentFetcherService', () => {
       text: jest
         .fn()
         .mockResolvedValueOnce(
-          '<html><head><title>OpenAI</title><meta name="description" content="AI platform"></head><body><script>ignore</script><p>Hello&nbsp;world</p></body></html>',
+          '<html><head><title>Example Docs</title><meta name="description" content="Reference portal"></head><body><script>ignore</script><p>Hello&nbsp;world</p></body></html>',
         ),
     });
 
     const service = createService();
 
-    await expect(service.fetch('https://openai.com')).resolves.toEqual({
-      title: 'OpenAI',
-      description: 'AI platform',
-      content: 'OpenAI Hello world',
+    await expect(service.fetch('https://example.test')).resolves.toEqual({
+      title: 'Example Docs',
+      description: 'Reference portal',
+      content: 'Example Docs Hello world',
     });
+
     expect(mockImpitFetch).toHaveBeenCalledTimes(1);
   });
 
@@ -128,16 +133,16 @@ describe('UrlPageContentFetcherService', () => {
       text: jest
         .fn()
         .mockResolvedValueOnce(
-          '<html><head><title>Bet 365</title><meta name="description" content="Sports"></head><body><p>Live betting</p></body></html>',
+          '<html><head><title>Sports Hub</title><meta name="description" content="Sports"></head><body><p>Live scores</p></body></html>',
         ),
     });
 
     const service = createService();
 
-    await expect(service.fetch('https://www.bet365.bet.br/#/HO/')).resolves.toEqual({
-      title: 'Bet 365',
+    await expect(service.fetch('https://sports.example.test/#/HO/')).resolves.toEqual({
+      title: 'Sports Hub',
       description: 'Sports',
-      content: 'Bet 365 Live betting',
+      content: 'Sports Hub Live scores',
     });
     expect(mockImpitFetch).toHaveBeenCalledTimes(1);
     expect(loggerWarnSpy).not.toHaveBeenCalled();
@@ -153,14 +158,15 @@ describe('UrlPageContentFetcherService', () => {
 
     const service = createService();
 
-    await expect(service.fetch('https://www.bet365.bet.br/#/HO/')).resolves.toEqual({
-      title: 'www.bet365.bet.br',
-      content: 'www.bet365.bet.br /',
+    await expect(service.fetch('https://sports.example.test/#/HO/')).resolves.toEqual({
+      title: 'sports.example.test',
+      content: 'sports.example.test /',
       description: null,
     });
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Page fetch returned 403 for https://www.bet365.bet.br/.');
+
+    expect(loggerWarnSpy).toHaveBeenCalledWith('Page fetch returned 403 for https://sports.example.test/.');
     expect(loggerWarnSpy).toHaveBeenCalledWith(
-      'Falling back to minimal page metadata for https://www.bet365.bet.br/#/HO/.',
+      'Falling back to minimal page metadata for https://sports.example.test/#/HO/.',
     );
   });
 
@@ -169,13 +175,16 @@ describe('UrlPageContentFetcherService', () => {
 
     const service = createService();
 
-    await expect(service.fetch('https://openai.com/docs')).resolves.toEqual({
-      title: 'openai.com',
-      content: 'openai.com /docs',
+    await expect(service.fetch('https://docs.example.test/reference')).resolves.toEqual({
+      title: 'docs.example.test',
+      content: 'docs.example.test /reference',
       description: null,
     });
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Page fetch failed for https://openai.com/docs: blocked');
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Falling back to minimal page metadata for https://openai.com/docs.');
+
+    expect(loggerWarnSpy).toHaveBeenCalledWith('Page fetch failed for https://docs.example.test/reference: blocked');
+    expect(loggerWarnSpy).toHaveBeenCalledWith(
+      'Falling back to minimal page metadata for https://docs.example.test/reference.',
+    );
   });
 
   it('uses the unknown error fallback when the page fetch throws a non-Error value', async () => {
@@ -183,18 +192,20 @@ describe('UrlPageContentFetcherService', () => {
 
     const service = createService();
 
-    await expect(service.fetch('https://openai.com/docs')).resolves.toEqual({
-      title: 'openai.com',
-      content: 'openai.com /docs',
+    await expect(service.fetch('https://docs.example.test/reference')).resolves.toEqual({
+      title: 'docs.example.test',
+      content: 'docs.example.test /reference',
       description: null,
     });
+
     expect(loggerWarnSpy).toHaveBeenCalledWith(
-      'Page fetch failed for https://openai.com/docs: Unknown page fetch error.',
+      'Page fetch failed for https://docs.example.test/reference: Unknown page fetch error.',
     );
   });
 
   it('returns null when metadata tags are absent', () => {
     const service = createService();
+
     const internals = service as unknown as UrlPageContentFetcherServiceInternals;
 
     expect(internals.extractTag('<html></html>', 'title')).toBeNull();

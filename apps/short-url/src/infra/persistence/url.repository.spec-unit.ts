@@ -79,7 +79,7 @@ describe('UrlRepository', () => {
     const { repository, ormRepository } = createRepository();
     const saved = {
       id: '1',
-      origin: 'https://openai.com',
+      origin: 'https://example.test',
       clicks: 0,
       userId: 'user-id',
       code: 'abc12345',
@@ -91,12 +91,12 @@ describe('UrlRepository', () => {
     ormRepository.create.mockReturnValueOnce(saved as never);
     ormRepository.save.mockResolvedValueOnce(saved as never);
 
-    const result = await repository.create('https://openai.com', 'abc12345', 'user-id');
+    const result = await repository.create('https://example.test', 'abc12345', 'user-id');
 
     expect(ormRepository.create.mock.calls).toEqual([
       [
         {
-          origin: 'https://openai.com',
+          origin: 'https://example.test',
           code: 'abc12345',
           userId: 'user-id',
           enrichment: {
@@ -117,7 +117,7 @@ describe('UrlRepository', () => {
     const { repository, ormRepository, manager } = createRepository();
     const found = {
       id: '1',
-      origin: 'https://old.com',
+      origin: 'https://legacy.example.test',
       clicks: 0,
       userId: 'user-id',
       code: 'abc12345',
@@ -130,7 +130,7 @@ describe('UrlRepository', () => {
     ormRepository.findOne.mockResolvedValueOnce(found as never);
     ormRepository.save.mockResolvedValueOnce({
       ...found,
-      origin: 'https://new.com',
+      origin: 'https://refreshed.example.test',
       enrichment: {
         id: 'enrichment-id',
         urlId: '1',
@@ -142,11 +142,11 @@ describe('UrlRepository', () => {
       },
     } as never);
 
-    const result = await repository.updateOrigin('1', 'https://new.com', 'user-id', 'abc12345');
+    const result = await repository.updateOrigin('1', 'https://refreshed.example.test', 'user-id', 'abc12345');
 
     expect(manager.create.mock.calls).toHaveLength(1);
     expect(result).toMatchObject({
-      origin: 'https://new.com',
+      origin: 'https://refreshed.example.test',
       code: 'abc12345',
     });
   });
@@ -156,7 +156,9 @@ describe('UrlRepository', () => {
 
     ormRepository.findOne.mockResolvedValueOnce(null);
 
-    await expect(repository.updateOrigin('1', 'https://new.com', 'user-id', 'abc123')).resolves.toBeNull();
+    await expect(
+      repository.updateOrigin('1', 'https://refreshed.example.test', 'user-id', 'abc123'),
+    ).resolves.toBeNull();
   });
 
   it('claims pending enrichments and marks them as processing', async () => {
@@ -168,7 +170,7 @@ describe('UrlRepository', () => {
         attempts: 0,
         url: {
           id: '1',
-          origin: 'https://openai.com',
+          origin: 'https://example.test',
           clicks: 0,
           userId: 'user-id',
           code: 'abc12345',
@@ -217,7 +219,7 @@ describe('UrlRepository', () => {
         summary: 'summary',
         category: 'docs',
         tags: ['ai'],
-        alternativeSlug: 'openai',
+        alternativeSlug: 'example-docs',
         riskLevel: 'low',
       },
       2,
@@ -250,7 +252,7 @@ describe('UrlRepository', () => {
       summary: 'summary',
       category: 'docs',
       tags: [],
-      alternativeSlug: 'openai',
+      alternativeSlug: 'example-docs',
       riskLevel: 'low',
     });
     await repository.failEnrichment('1', 'error');
@@ -273,7 +275,7 @@ describe('UrlRepository', () => {
     const { repository, ormRepository } = createRepository();
     const found = {
       id: '1',
-      origin: 'https://openai.com',
+      origin: 'https://example.test',
       clicks: 1,
       userId: 'user-id',
       code: 'abc12345',
@@ -289,7 +291,7 @@ describe('UrlRepository', () => {
         summary: 'summary',
         category: 'docs',
         tags: ['ai'],
-        alternativeSlug: 'openai',
+        alternativeSlug: 'example-docs',
         riskLevel: 'low',
         enrichedAt: new Date(),
         error: null,
@@ -304,12 +306,13 @@ describe('UrlRepository', () => {
 
     const byCode = await repository.findByCode('abc12345');
     const byUser = await repository.findByCodeAndUserId('abc12345', 'user-id');
-    const byHumanized = await repository.findByAlternativeSlugAndUserId('openai', 'user-id');
+    const byHumanized = await repository.findByAlternativeSlugAndUserId('example-docs', 'user-id');
     const userItems = await repository.listByUser('user-id');
 
     expect(byCode).not.toBeNull();
     expect(byCode?.id).toBe('1');
     expect(byCode?.enrichment?.status).toBe('completed');
+    expect(byCode?.enrichment?.provider).toBe('gemini');
     expect(byUser?.id).toBe('1');
     expect(byHumanized?.id).toBe('1');
     expect(userItems).toHaveLength(1);
@@ -343,7 +346,7 @@ describe('UrlRepository', () => {
     const { repository, ormRepository } = createRepository();
     const found = {
       id: '1',
-      origin: 'https://openai.com',
+      origin: 'https://example.test',
       clicks: 1,
       userId: 'user-id',
       code: 'abc12345',
@@ -359,7 +362,7 @@ describe('UrlRepository', () => {
         summary: 'summary',
         category: 'docs',
         tags: null,
-        alternativeSlug: 'openai',
+        alternativeSlug: 'example-docs',
         riskLevel: 'low',
         enrichedAt: new Date(),
         error: null,

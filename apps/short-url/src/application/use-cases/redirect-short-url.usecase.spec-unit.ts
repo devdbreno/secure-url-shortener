@@ -38,7 +38,7 @@ describe('RedirectShortUrlUseCase', () => {
   });
 
   it('returns the url when the short code exists', async () => {
-    const url = new Url('1', 'https://openai.com', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
+    const url = new Url('1', 'https://example.test', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
 
     urlRepoMock.findByCode.mockResolvedValueOnce(url);
 
@@ -52,12 +52,13 @@ describe('RedirectShortUrlUseCase', () => {
   });
 
   it('returns the url when the humanized lookup exists', async () => {
-    const url = new Url('1', 'https://openai.com', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
+    const url = new Url('1', 'https://example.test', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
 
     urlRepoMock.findByAlternativeSlugAndUserId.mockResolvedValueOnce(url);
 
-    await expect(redirectShortUrlUseCase.executeHumanized('user-id', 'OpenAI-Docs')).resolves.toBe(url);
-    expect(urlRepoMock.findByAlternativeSlugAndUserId).toHaveBeenCalledWith('openai-docs', 'user-id');
+    await expect(redirectShortUrlUseCase.executeHumanized('user-id', 'Example-Docs')).resolves.toBe(url);
+
+    expect(urlRepoMock.findByAlternativeSlugAndUserId).toHaveBeenCalledWith('example-docs', 'user-id');
   });
 
   it('throws when the humanized lookup is missing', async () => {

@@ -1,7 +1,9 @@
+import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { UrlEnrichmentWorker } from '@infra/enrichment/workers/url-enrichment.worker';
+import { UrlEnrichmentJobPayload } from '@application/ports/outbound/url-enrichment-job-dispatcher.port';
 
 describe('UrlEnrichmentWorker', () => {
   let loggerLogSpy: jest.SpyInstance;
@@ -10,13 +12,16 @@ describe('UrlEnrichmentWorker', () => {
   const configServiceMock = {
     get: jest.fn(),
   } as unknown as jest.Mocked<ConfigService>;
+
   const pageContentFetcherMock = {
     fetch: jest.fn(),
   };
+
   const urlRepoMock = {
     completeEnrichment: jest.fn(),
     failEnrichment: jest.fn(),
   };
+
   const enrichmentProviderMock = {
     enrich: jest.fn(),
   };
@@ -31,6 +36,7 @@ describe('UrlEnrichmentWorker', () => {
   beforeEach(() => {
     loggerLogSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
     loggerWarnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+
     jest.clearAllMocks();
   });
 
@@ -42,38 +48,55 @@ describe('UrlEnrichmentWorker', () => {
   it('exits early when ai enrichment is disabled', async () => {
     configServiceMock.get = jest.fn().mockReturnValue(false);
 
-    await expect(
-      worker.process({ data: { urlId: '1', origin: 'https://openai.com' } } as never),
-    ).resolves.toBeUndefined();
+    const job = {
+      data: { urlId: '1', origin: 'https://example.test' },
+      attemptsStarted: 1,
+    } as Job<UrlEnrichmentJobPayload>;
+
+    await expect(worker.process(job)).resolves.toBeUndefined();
+
     expect(pageContentFetcherMock.fetch).not.toHaveBeenCalled();
     expect(loggerLogSpy).toHaveBeenCalledWith('AI enrichment worker is disabled.');
   });
 
   it('completes the enrichment when processing succeeds', async () => {
     configServiceMock.get = jest.fn().mockReturnValue(true);
+
     pageContentFetcherMock.fetch.mockResolvedValueOnce({
-      title: 'OpenAI',
-      description: 'AI platform',
+      title: 'Example Docs',
+      description: 'Reference portal',
       content: 'content',
     });
+
     enrichmentProviderMock.enrich.mockResolvedValueOnce({
       summary: 'summary',
       category: 'docs',
       tags: ['ai'],
-      alternativeSlug: 'openai',
+      alternativeSlug: 'example-docs',
       riskLevel: 'low',
+      provider: 'gemini',
     });
 
-    await worker.process({ data: { urlId: '1', origin: 'https://openai.com' } } as never);
+    const job = {
+      data: { urlId: '1', origin: 'https://example.test' },
+      attemptsStarted: 1,
+    } as Job<UrlEnrichmentJobPayload>;
 
-    expect(urlRepoMock.completeEnrichment).toHaveBeenCalledWith('1', {
-      summary: 'summary',
-      category: 'docs',
-      tags: ['ai'],
-      alternativeSlug: 'openai',
-      riskLevel: 'low',
-    });
-    expect(loggerLogSpy).toHaveBeenCalledWith('Processing enrichment for URL 1 (https://openai.com)');
+    await worker.process(job);
+
+    expect(urlRepoMock.completeEnrichment).toHaveBeenCalledWith(
+      '1',
+      {
+        summary: 'summary',
+        category: 'docs',
+        tags: ['ai'],
+        alternativeSlug: 'example-docs',
+        riskLevel: 'low',
+        provider: 'gemini',
+      },
+      1,
+    );
+    expect(loggerLogSpy).toHaveBeenCalledWith('Processing enrichment for URL 1 (https://example.test)');
     expect(loggerLogSpy).toHaveBeenCalledWith('Successfully enriched URL 1');
   });
 
@@ -81,11 +104,14 @@ describe('UrlEnrichmentWorker', () => {
     configServiceMock.get = jest.fn().mockReturnValue(true);
     pageContentFetcherMock.fetch.mockRejectedValueOnce(new Error('fetch failed'));
 
-    await expect(worker.process({ data: { urlId: '1', origin: 'https://openai.com' } } as never)).rejects.toThrow(
-      'fetch failed',
-    );
+    const job = {
+      data: { urlId: '1', origin: 'https://example.test' },
+      attemptsStarted: 1,
+    } as Job<UrlEnrichmentJobPayload>;
 
-    expect(urlRepoMock.failEnrichment).toHaveBeenCalledWith('1', 'fetch failed');
+    await expect(worker.process(job)).rejects.toThrow('fetch failed');
+
+    expect(urlRepoMock.failEnrichment).toHaveBeenCalledWith('1', 'fetch failed', 1);
     expect(loggerWarnSpy).toHaveBeenCalledWith('Failed to enrich URL 1: fetch failed');
   });
 
@@ -93,9 +119,14 @@ describe('UrlEnrichmentWorker', () => {
     configServiceMock.get = jest.fn().mockReturnValue(true);
     pageContentFetcherMock.fetch.mockRejectedValueOnce('boom');
 
-    await expect(worker.process({ data: { urlId: '1', origin: 'https://openai.com' } } as never)).rejects.toBe('boom');
+    const job = {
+      data: { urlId: '1', origin: 'https://example.test' },
+      attemptsStarted: 1,
+    } as Job<UrlEnrichmentJobPayload>;
 
-    expect(urlRepoMock.failEnrichment).toHaveBeenCalledWith('1', 'Unknown enrichment error.');
+    await expect(worker.process(job)).rejects.toBe('boom');
+
+    expect(urlRepoMock.failEnrichment).toHaveBeenCalledWith('1', 'Unknown enrichment error.', 1);
     expect(loggerWarnSpy).toHaveBeenCalledWith('Failed to enrich URL 1: Unknown enrichment error.');
   });
 });

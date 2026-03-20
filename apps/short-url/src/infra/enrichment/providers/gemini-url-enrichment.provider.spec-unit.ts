@@ -50,7 +50,7 @@ describe('GeminiUrlEnrichmentProvider', () => {
 
     await expect(
       provider.enrich({
-        origin: 'https://openai.com',
+        origin: 'https://example.test',
         pageContent: 'content',
       }),
     ).resolves.toEqual({
@@ -68,18 +68,18 @@ describe('GeminiUrlEnrichmentProvider', () => {
         summary: 'AI summary',
         category: 'docs',
         tags: ['ai'],
-        alternativeSlug: 'openai-docs',
+        alternativeSlug: 'example-docs',
         riskLevel: 'high',
       }),
     });
 
     const provider = new GeminiUrlEnrichmentProvider(configServiceMock);
 
-    await expect(provider.enrich({ origin: 'https://openai.com/docs' })).resolves.toEqual({
+    await expect(provider.enrich({ origin: 'https://docs.example.test/reference' })).resolves.toEqual({
       summary: 'AI summary',
       category: 'docs',
       tags: ['ai'],
-      alternativeSlug: 'openai-docs',
+      alternativeSlug: 'example-docs',
       riskLevel: 'high',
     });
   });
@@ -91,7 +91,7 @@ describe('GeminiUrlEnrichmentProvider', () => {
 
     const provider = new GeminiUrlEnrichmentProvider(configServiceMock);
 
-    await expect(provider.enrich({ origin: 'https://openai.com' })).rejects.toThrow(SyntaxError);
+    await expect(provider.enrich({ origin: 'https://example.test' })).rejects.toThrow(SyntaxError);
 
     expect(loggerError).toHaveBeenCalledWith('Failed to parse Gemini response', expect.any(SyntaxError));
   });

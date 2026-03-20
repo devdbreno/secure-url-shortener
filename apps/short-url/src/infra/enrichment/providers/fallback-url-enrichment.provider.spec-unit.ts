@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { FallbackUrlEnrichmentProvider } from '@infra/enrichment/providers/fallback-url-enrichment.provider';
 
 describe('FallbackUrlEnrichmentProvider', () => {
-  const input = { origin: 'https://openai.com' };
+  const input = { origin: 'https://example.test' };
   let loggerWarnSpy: jest.SpyInstance;
 
   beforeEach(() => {

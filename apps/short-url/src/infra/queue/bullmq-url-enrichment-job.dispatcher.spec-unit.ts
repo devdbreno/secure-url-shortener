@@ -10,7 +10,7 @@ describe('BullMqUrlEnrichmentJobDispatcher', () => {
     } as unknown as jest.Mocked<Queue<any>>;
 
     const dispatcher = new BullMqUrlEnrichmentJobDispatcher(queue);
-    const payload = { urlId: 'url-id', origin: 'https://openai.com' };
+    const payload = { urlId: 'url-id', origin: 'https://example.test' };
 
     await dispatcher.dispatch(payload);
 

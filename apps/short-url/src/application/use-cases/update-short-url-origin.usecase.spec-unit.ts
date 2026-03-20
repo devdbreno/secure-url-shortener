@@ -38,10 +38,10 @@ describe('UpdateShortUrlOriginUseCase', () => {
   });
 
   it('updates the origin and returns the updated url', async () => {
-    const url = new Url('1', 'https://openai.com', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
+    const url = new Url('1', 'https://example.test', 0, 'user-id', 'abc12345', new Date(), new Date(), null, null);
     const updated = new Url(
       '1',
-      'https://platform.openai.com',
+      'https://portal.example.test',
       0,
       'user-id',
       'abc12345',
@@ -68,7 +68,7 @@ describe('UpdateShortUrlOriginUseCase', () => {
 
     await expect(
       updateShortUrlOriginUseCase.execute('user-id', 'missing', {
-        origin: 'https://platform.openai.com',
+        origin: 'https://portal.example.test',
       } as never),
     ).rejects.toThrow(NotFoundException);
   });

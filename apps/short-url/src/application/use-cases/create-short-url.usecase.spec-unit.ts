@@ -52,7 +52,7 @@ describe('CreateShortUrlUseCase', () => {
   it('creates a short url and dispatches enrichment through the application port', async () => {
     const createdUrl = new Url(
       'url-id',
-      'https://openai.com',
+      'https://example.test',
       0,
       'user-id',
       'abc12345',

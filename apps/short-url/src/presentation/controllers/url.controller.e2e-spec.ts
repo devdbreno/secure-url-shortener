@@ -150,21 +150,21 @@ describe('UrlController (e2e)', () => {
     createShortUrlUseCase.execute.mockResolvedValueOnce({
       id: '1',
       code: 'abc12345',
-      origin: 'https://openai.com',
+      origin: 'https://example.test',
     });
 
     const response = await request(app.getHttpServer()).post('/short-urls').set('Authorization', 'Bearer token').send({
-      origin: 'https://openai.com',
+      origin: 'https://example.test',
     });
 
     expect(response.status).toBe(HttpStatus.CREATED);
     expect(response.body).toEqual({
       id: '1',
       code: 'abc12345',
-      origin: 'https://openai.com',
+      origin: 'https://example.test',
     });
     expect(identityOptionalJwtTcpGuard.canActivate).toHaveBeenCalledTimes(1);
-    expect(createShortUrlUseCase.execute.mock.calls).toEqual([['https://openai.com', 'user-id']]);
+    expect(createShortUrlUseCase.execute.mock.calls).toEqual([['https://example.test', 'user-id']]);
   });
 
   it('POST /short-urls rejects invalid origins before reaching the use case', async () => {
@@ -181,7 +181,7 @@ describe('UrlController (e2e)', () => {
     getShortUrlStatsUseCase.execute.mockResolvedValueOnce({
       id: '1',
       code: 'abc12345',
-      origin: 'https://openai.com/docs',
+      origin: 'https://docs.example.test/reference',
       clicks: 8,
       createdAt: new Date('2026-03-16T12:00:00.000Z'),
       updatedAt: new Date('2026-03-18T12:00:00.000Z'),
@@ -192,9 +192,9 @@ describe('UrlController (e2e)', () => {
         enrichedAt: new Date('2026-03-18T12:00:00.000Z'),
         riskLevel: 'low',
         category: 'documentation',
-        summary: 'OpenAI docs',
-        tags: ['openai', 'docs'],
-        alternativeSlug: 'openai-docs',
+        summary: 'Example docs',
+        tags: ['example', 'docs'],
+        alternativeSlug: 'example-docs',
         error: null,
       },
     });
@@ -209,14 +209,14 @@ describe('UrlController (e2e)', () => {
       code: 'abc12345',
       publicPaths: {
         shortened: '/abc12345',
-        humanized: '/test-user/openai-docs',
+        humanized: '/test-user/example-docs',
       },
       visitMetrics: {
         totalClicks: 8,
       },
       enrichment: {
         status: 'completed',
-        alternativeSlug: 'openai-docs',
+        alternativeSlug: 'example-docs',
         hasHumanizedPath: true,
       },
     });
@@ -228,7 +228,7 @@ describe('UrlController (e2e)', () => {
       .patch('/short-urls/invalid-code!')
       .set('Authorization', 'Bearer token')
       .send({
-        origin: 'https://openai.com/docs',
+        origin: 'https://docs.example.test/reference',
       });
 
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
@@ -239,15 +239,16 @@ describe('UrlController (e2e)', () => {
   it('GET /:shortUrlCode redirects and tracks the visit', async () => {
     redirectShortUrlUseCase.execute.mockResolvedValueOnce({
       id: 'url-id',
-      origin: 'https://openai.com/docs',
+      origin: 'https://docs.example.test/reference',
       enrichment: null,
     });
+
     redirectShortUrlUseCase.trackVisit.mockResolvedValueOnce(undefined);
 
     const response = await request(app.getHttpServer()).get('/abc12345');
 
     expect(response.status).toBe(HttpStatus.FOUND);
-    expect(response.headers.location).toBe('https://openai.com/docs');
+    expect(response.headers.location).toBe('https://docs.example.test/reference');
     expect(redirectShortUrlUseCase.execute.mock.calls).toEqual([['abc12345']]);
     expect(redirectShortUrlUseCase.trackVisit.mock.calls).toEqual([['url-id']]);
   });
@@ -255,7 +256,7 @@ describe('UrlController (e2e)', () => {
   it('GET /:shortUrlCode shows a warning page when enrichment marks the link as high risk', async () => {
     redirectShortUrlUseCase.execute.mockResolvedValueOnce({
       id: 'url-id',
-      origin: 'https://openai.com/docs',
+      origin: 'https://docs.example.test/reference',
       enrichment: {
         status: 'completed',
         riskLevel: 'high',
@@ -277,18 +278,19 @@ describe('UrlController (e2e)', () => {
   it('GET /:shortUrlCode?proceed=1 redirects even when the link is high risk', async () => {
     redirectShortUrlUseCase.execute.mockResolvedValueOnce({
       id: 'url-id',
-      origin: 'https://openai.com/docs',
+      origin: 'https://docs.example.test/reference',
       enrichment: {
         status: 'completed',
         riskLevel: 'high',
       },
     });
+
     redirectShortUrlUseCase.trackVisit.mockResolvedValueOnce(undefined);
 
     const response = await request(app.getHttpServer()).get('/abc12345?proceed=1');
 
     expect(response.status).toBe(HttpStatus.FOUND);
-    expect(response.headers.location).toBe('https://openai.com/docs');
+    expect(response.headers.location).toBe('https://docs.example.test/reference');
     expect(redirectShortUrlUseCase.trackVisit.mock.calls).toEqual([['url-id']]);
   });
 
@@ -297,19 +299,21 @@ describe('UrlController (e2e)', () => {
       isSuccess: true,
       value: { userId: 'user-id', username: 'test-user' },
     });
+
     redirectShortUrlUseCase.executeHumanized.mockResolvedValueOnce({
       id: 'url-id',
-      origin: 'https://openai.com/docs',
+      origin: 'https://docs.example.test/reference',
       enrichment: null,
     });
+
     redirectShortUrlUseCase.trackVisit.mockResolvedValueOnce(undefined);
 
-    const response = await request(app.getHttpServer()).get('/test-user/openai-docs');
+    const response = await request(app.getHttpServer()).get('/test-user/example-docs');
 
     expect(response.status).toBe(HttpStatus.FOUND);
-    expect(response.headers.location).toBe('https://openai.com/docs');
+    expect(response.headers.location).toBe('https://docs.example.test/reference');
     expect(identityClient.findUserByUsername.mock.calls).toEqual([['test-user']]);
-    expect(redirectShortUrlUseCase.executeHumanized.mock.calls).toEqual([['user-id', 'openai-docs']]);
+    expect(redirectShortUrlUseCase.executeHumanized.mock.calls).toEqual([['user-id', 'example-docs']]);
     expect(redirectShortUrlUseCase.trackVisit.mock.calls).toEqual([['url-id']]);
   });
 
@@ -318,20 +322,21 @@ describe('UrlController (e2e)', () => {
       isSuccess: true,
       value: { userId: 'user-id', username: 'test-user' },
     });
+
     redirectShortUrlUseCase.executeHumanized.mockResolvedValueOnce({
       id: 'url-id',
-      origin: 'https://openai.com/docs',
+      origin: 'https://docs.example.test/reference',
       enrichment: {
         status: 'completed',
         riskLevel: 'high',
       },
     });
 
-    const response = await request(app.getHttpServer()).get('/test-user/openai-docs');
+    const response = await request(app.getHttpServer()).get('/test-user/example-docs');
 
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.headers['content-type']).toContain('text/html');
-    expect(response.text).toContain('/test-user/openai-docs?proceed=1');
+    expect(response.text).toContain('/test-user/example-docs?proceed=1');
     expect(redirectShortUrlUseCase.trackVisit).not.toHaveBeenCalled();
   });
 });
