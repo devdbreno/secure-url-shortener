@@ -109,6 +109,11 @@ Resposta típica `200`:
     "code": "abc12345",
     "createdAt": "2026-03-18T12:00:00.000Z",
     "updatedAt": "2026-03-18T12:00:00.000Z",
+    "deletedAt": null,
+    "publicPaths": {
+      "shortened": "/abc12345",
+      "humanized": "/jane-doe/example-page"
+    },
     "enrichment": {
       "status": "pending",
       "tags": [],
@@ -117,6 +122,48 @@ Resposta típica `200`:
     }
   }
 ]
+```
+
+### `GET /short-urls/:shortUrlCode`
+
+Retorna um único link do usuário autenticado.
+
+Headers:
+
+```text
+Authorization: Bearer <jwt>
+```
+
+Resposta típica `200`:
+
+```json
+{
+  "id": "uuid",
+  "origin": "https://example.com/some/path",
+  "clicks": 42,
+  "userId": "uuid",
+  "code": "abc12345",
+  "createdAt": "2026-03-18T12:00:00.000Z",
+  "updatedAt": "2026-03-18T12:10:00.000Z",
+  "deletedAt": null,
+  "publicPaths": {
+    "shortened": "/abc12345",
+    "humanized": "/jane-doe/example-page"
+  },
+  "enrichment": {
+    "status": "completed",
+    "attempts": 1,
+    "enrichedAt": "2026-03-18T12:05:00.000Z",
+    "riskLevel": "low",
+    "category": "documentation",
+    "summary": "Page summary",
+    "tags": ["docs", "api"],
+    "alternativeSlug": "example-page",
+    "provider": "gemini",
+    "hasHumanizedPath": true,
+    "error": null
+  }
+}
 ```
 
 ### `POST /short-urls`
