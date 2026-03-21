@@ -1,6 +1,5 @@
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 import { UrlEnrichmentWorker } from '@infra/enrichment/workers/url-enrichment.worker';
 import { UrlEnrichmentJobPayload } from '@application/ports/outbound/url-enrichment-job-dispatcher.port';
@@ -8,10 +7,6 @@ import { UrlEnrichmentJobPayload } from '@application/ports/outbound/url-enrichm
 describe('UrlEnrichmentWorker', () => {
   let loggerLogSpy: jest.SpyInstance;
   let loggerWarnSpy: jest.SpyInstance;
-
-  const configServiceMock = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ConfigService>;
 
   const pageContentFetcherMock = {
     fetch: jest.fn(),
@@ -27,7 +22,6 @@ describe('UrlEnrichmentWorker', () => {
   };
 
   const worker = new UrlEnrichmentWorker(
-    configServiceMock,
     pageContentFetcherMock as never,
     urlRepoMock as never,
     enrichmentProviderMock as never,
@@ -45,23 +39,7 @@ describe('UrlEnrichmentWorker', () => {
     loggerWarnSpy.mockRestore();
   });
 
-  it('exits early when ai enrichment is disabled', async () => {
-    configServiceMock.get = jest.fn().mockReturnValue(false);
-
-    const job = {
-      data: { urlId: '1', origin: 'https://example.test' },
-      attemptsStarted: 1,
-    } as Job<UrlEnrichmentJobPayload>;
-
-    await expect(worker.process(job)).resolves.toBeUndefined();
-
-    expect(pageContentFetcherMock.fetch).not.toHaveBeenCalled();
-    expect(loggerLogSpy).toHaveBeenCalledWith('AI enrichment worker is disabled.');
-  });
-
   it('completes the enrichment when processing succeeds', async () => {
-    configServiceMock.get = jest.fn().mockReturnValue(true);
-
     pageContentFetcherMock.fetch.mockResolvedValueOnce({
       title: 'Example Docs',
       description: 'Reference portal',
@@ -101,7 +79,6 @@ describe('UrlEnrichmentWorker', () => {
   });
 
   it('fails the enrichment and rethrows when processing raises an error', async () => {
-    configServiceMock.get = jest.fn().mockReturnValue(true);
     pageContentFetcherMock.fetch.mockRejectedValueOnce(new Error('fetch failed'));
 
     const job = {
@@ -116,7 +93,6 @@ describe('UrlEnrichmentWorker', () => {
   });
 
   it('uses the fallback message when a non-Error value is thrown', async () => {
-    configServiceMock.get = jest.fn().mockReturnValue(true);
     pageContentFetcherMock.fetch.mockRejectedValueOnce('boom');
 
     const job = {

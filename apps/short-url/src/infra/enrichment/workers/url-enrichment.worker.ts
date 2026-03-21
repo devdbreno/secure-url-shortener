@@ -1,5 +1,4 @@
 import { Job } from 'bullmq';
-import { ConfigService } from '@nestjs/config';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
@@ -17,7 +16,6 @@ export class UrlEnrichmentWorker extends WorkerHost {
   private readonly logger = new Logger(UrlEnrichmentWorker.name);
 
   constructor(
-    private readonly configService: ConfigService,
     private readonly pageContentFetcher: UrlPageContentFetcherService,
     @Inject(URL_REPOSITORY) private readonly urlRepo: IUrlRepository,
     @Inject(URL_ENRICHMENT_PROVIDER) private readonly enrichmentProvider: IUrlEnrichmentProvider,
@@ -26,12 +24,6 @@ export class UrlEnrichmentWorker extends WorkerHost {
   }
 
   public async process(job: Job<UrlEnrichmentJobPayload>) {
-    if (!this.configService.get<boolean>('api.aiEnrichmentEnabled')) {
-      this.logger.log('AI enrichment worker is disabled.');
-
-      return;
-    }
-
     const { urlId, origin } = job.data;
 
     try {
