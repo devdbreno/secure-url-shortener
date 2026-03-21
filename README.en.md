@@ -18,13 +18,13 @@ Monorepo with two NestJS microservices for secure URL shortening, authentication
 
 From an architecture and interview perspective, this project demonstrates:
 
-- clear boundaries between identity and URL domains;
-- a short synchronous write path and an asynchronous path for heavier processing;
-- explicit contracts between distributed services;
+- Clear boundaries between Identity and URL domains;
+- A short synchronous write path and an asynchronous path for heavier processing;
+- Explicit contracts between distributed services;
 - AI integration treated as infrastructure detail;
-- deterministic fallback when the primary provider fails;
-- operational readiness through HTTP health checks and explicit `docker-compose` dependencies;
-- explicit security concerns during both content fetch and public redirect.
+- Deterministic fallback when the primary provider fails;
+- Operational readiness through HTTP health checks and explicit `docker-compose` dependencies;
+- Explicit security concerns during both content fetch and public redirect.
 
 ## Route documentation
 
@@ -78,29 +78,29 @@ Each app follows this split:
 
 Responsible for:
 
-- creating users with `email`, `password`, and `username`;
-- authenticating users and issuing JWTs;
-- validating tokens consumed by `short-url`;
-- resolving `username -> userId` for the humanized route.
+- Creating users with `email`, `password`, and `username`;
+- Authenticating users and issuing JWTs;
+- Validating tokens consumed by `Short-url`;
+- Resolving `username -> userId` for the humanized route.
 
-`identity` is the source of truth for authentication and public identity. This avoids duplicating registration, token validation, and user lookup inside the link service.
+`Identity` is the source of truth for authentication and public identity. This avoids duplicating registration, token validation, and user lookup inside the link service.
 
 ### `SHORT_URL`
 
 Responsible for:
 
-- shortening URLs;
-- keeping optional ownership for authenticated users;
-- listing links owned by the authenticated user;
-- retrieving one specific link by `code`;
-- allowing single-item lookup and stats for anonymous links without authentication;
-- updating the destination and clearing previous enrichment data;
-- soft deleting links;
-- enriching destinations in the background;
-- redirecting by `code` or humanized route;
-- requiring explicit confirmation when enrichment indicates high risk.
+- Shortening URLs;
+- Keeping optional ownership for authenticated users;
+- Listing links owned by the authenticated user;
+- Retrieving one specific link by `code`;
+- Allowing single-item lookup and stats for anonymous links without authentication;
+- Updating the destination and clearing previous enrichment data;
+- Soft deleting links;
+- Enriching destinations in the background;
+- Redirecting by `code` or humanized route;
+- Requiring explicit confirmation when enrichment indicates high risk.
 
-`short-url` owns the link domain and delegates authentication to `identity`, keeping the context boundary explicit.
+`Short-url` owns the link domain and delegates authentication to `Identity`, keeping the context boundary explicit.
 
 ## End-to-end flow
 
@@ -109,7 +109,7 @@ Responsible for:
 - The user registers with `email`, `password`, and `username`.
 - `username` is normalized to lowercase and must be unique.
 - Login returns a JWT carrying `sub`, `email`, and `username`.
-- `short-url` uses that token for authenticated operations.
+- `Short-url` uses that token for authenticated operations.
 
 ### 2. Short-link creation
 
@@ -122,10 +122,10 @@ Responsible for:
 
 The BullMQ dispatcher schedules the job with:
 
-- an initial 5-second delay;
-- up to 5 attempts;
-- exponential backoff;
-- bounded history through `removeOnComplete` and `removeOnFail`.
+- An initial 5-second delay;
+- Up to 5 attempts;
+- Exponential backoff;
+- Bounded history through `removeOnComplete` and `removeOnFail`.
 
 ### 4. Safe page-content fetch
 
@@ -133,12 +133,12 @@ The worker fetches the original page content before enriching it.
 
 The fetcher:
 
-- uses browser-assisted page fetch through `Impit` as the default strategy;
-- accepts only `http` and `https`;
-- rejects `localhost`, private ranges, and unsafe hosts;
-- applies a configurable timeout;
-- extracts `title`, `meta description`, and cleaned HTML text content;
-- falls back to minimal metadata when the response is not `text/html`.
+- Uses browser-assisted page fetch through `Impit` as the default strategy;
+- Accepts only `http` and `https`;
+- Rejects `localhost`, private ranges, and unsafe hosts;
+- Applies a configurable timeout;
+- Extracts `title`, `meta description`, and cleaned HTML text content;
+- Falls back to minimal metadata when the response is not `text/html`.
 
 ### 5. Enrichment pipeline
 
@@ -180,31 +180,31 @@ Core files in this flow:
 ### 9. Humanized redirect
 
 - `GET /:username/:alternativeSlug`
-- Resolves `username` in `identity`.
+- Resolves `username` in `Identity`.
 - Finds the owner URL whose enrichment produced the `alternativeSlug`, persisted as `slug-N` and kept unique per user.
 - Applies the same security rule as the classic redirect.
 
 ## Service communication
 
-`short-url` depends on `identity` for two internal Nest TCP contracts:
+`Short-url` depends on `Identity` for two internal Nest TCP contracts:
 
 - `validate_user_token`
 - `find_user_by_username`
 
 In practice:
 
-- authenticated requests arrive at `short-url`;
-- the guard calls `identity`;
-- `identity` validates the JWT and returns `userId`, `email`, and `username`;
-- the humanized route calls `identity` to resolve `username -> userId`.
+- Authenticated requests arrive at `Short-url`;
+- The guard calls `Identity`;
+- `Identity` validates the JWT and returns `userId`, `email`, and `username`;
+- The humanized route calls `Identity` to resolve `username -> userId`.
 
 ## Relevant security rules
 
-- `identity` requires a unique `username` at registration.
+- `Identity` requires a unique `username` at registration.
 - The accepted registration `username` must be 3 to 30 characters, lowercase, using letters, numbers, hyphen, or underscore.
 - The `shortUrlCode` accepted by protected and public routes must be exactly 8 alphanumeric characters.
 - Content fetch rejects unsafe protocols and hosts.
-- `short-url` does not auto-redirect URLs with `riskLevel=high`.
+- `Short-url` does not auto-redirect URLs with `riskLevel=high`.
 - A click is only tracked when the redirect actually happens.
 
 ## Requirements
@@ -252,9 +252,9 @@ Most relevant groups:
   - `REDIS_HOST`
   - `REDIS_PORT`
   - `REDIS_PASSWORD`
-- `identity` database
+- `Identity` database
   - `DB_IDENTITY_*`
-- `short-url` database
+- `Short-url` database
   - `DB_SHORT_URL_*`
 
 Use [.env.example](./.env.example) as the baseline.
@@ -277,7 +277,7 @@ Exposed services:
 - Identity Swagger: `http://localhost:4000/api-docs`
 - Short URL Swagger: `http://localhost:4001/api-docs`
 
-`docker-compose` now also waits for `postgres`, `redis`, and `identity` to become healthy before starting `short-url`.
+`docker-compose` now also waits for `postgres`, `redis`, and `Identity` to become healthy before starting `Short-url`.
 
 Stop the stack:
 
@@ -361,11 +361,11 @@ yarn workspace @secure-url-shortener/short-url test:e2e
 The tests mainly cover:
 
 - DTO validation;
-- authentication guards;
-- authentication payloads;
+- Authentication guards;
+- Authentication payloads;
 - `username` lookup;
-- classic redirect;
-- humanized redirect;
+- Classic redirect;
+- Humanized redirect;
 - HTML warning page for high-risk URLs.
 
 ## Lint and formatting
@@ -385,6 +385,7 @@ yarn workspace @secure-url-shortener/short-url lint
 ## Notes
 
 - The database schema is synchronized automatically outside production (`synchronize`).
-- Enrichment only runs when `AI_ENRICHMENT_ENABLED=true`.
-- With the pipeline enabled, the composed provider tries Gemini first and falls back to heuristics if the primary provider fails.
+- The enrichment worker keeps processing pending items even when `AI_ENRICHMENT_ENABLED=false`.
+- `AI_ENRICHMENT_ENABLED` only disables the AI provider; in that case the pipeline uses the local heuristic provider directly.
+- With AI enabled, the composed provider tries Gemini first and falls back to heuristics if the primary provider fails.
 - The persisted `provider` in `url_enrichments` shows which engine produced the final enrichment (`gemini` or `heuristic`).

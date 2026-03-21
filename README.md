@@ -18,13 +18,13 @@ Monorepo com dois microservices NestJS para encurtamento seguro de URLs, autenti
 
 Do ponto de vista de arquitetura e entrevista técnica, este projeto demonstra:
 
-- separação clara entre contexto de identidade e contexto de URLs;
-- caminho síncrono curto para escrita e caminho assíncrono para processamento pesado;
-- contratos explícitos entre serviços distribuídos;
-- integração com IA tratada como detalhe de infraestrutura;
-- fallback determinístico quando o provider principal falha;
-- readiness operacional com `healthcheck` HTTP e dependências explícitas no `docker-compose`;
-- preocupação explícita com segurança no fetch do conteúdo e no redirect público.
+- Separação clara entre contexto de identidade e contexto de URLs;
+- Caminho síncrono curto para escrita e caminho assíncrono para processamento pesado;
+- Contratos explícitos entre serviços distribuídos;
+- Integração com IA tratada como detalhe de infraestrutura;
+- Fallback determinístico quando o provider principal falha;
+- Readiness operacional com `healthcheck` HTTP e dependências explícitas no `docker-compose`;
+- Preocupação explícita com segurança no fetch do conteúdo e no redirect público.
 
 ## Documentação de rotas
 
@@ -78,29 +78,29 @@ Cada app segue a divisão:
 
 Responsável por:
 
-- criar usuários com `email`, `password` e `username`;
-- autenticar usuários e emitir JWT;
-- validar tokens consumidos pelo `short-url`;
-- resolver `username -> userId` para a rota humanizada.
+- Criar usuários com `email`, `password` e `username`;
+- Autenticar usuários e emitir JWT;
+- Validar tokens consumidos pelo `Short-url`;
+- Resolver `username -> userId` para a rota humanizada.
 
-O `identity` é a fonte de verdade para autenticação e identidade pública. Isso evita duplicar cadastro, validação de token e lookup de usuário dentro do serviço de URLs.
+O `Identity` é a fonte de verdade para autenticação e identidade pública. Isso evita duplicar cadastro, validação de token e lookup de usuário dentro do serviço de URLs.
 
 ### `SHORT_URL`
 
 Responsável por:
 
-- encurtar URLs;
-- manter ownership opcional por usuário autenticado;
-- listar links do usuário autenticado;
-- consultar um link específico por `code`;
-- permitir consulta unitária e stats de links anônimos sem autenticação;
-- atualizar destino e limpar o enrichment anterior;
-- excluir links logicamente;
-- enriquecer destinos em background;
-- redirecionar por `code` ou por rota humanizada;
-- exigir confirmação explícita quando o enrichment indicar risco alto.
+- Encurtar URLs;
+- Manter ownership opcional por usuário autenticado;
+- Listar links do usuário autenticado;
+- Consultar um link específico por `code`;
+- Permitir consulta unitária e stats de links anônimos sem autenticação;
+- Atualizar destino e limpar o enrichment anterior;
+- Excluir links logicamente;
+- Enriquecer destinos em background;
+- Redirecionar por `code` ou por rota humanizada;
+- Exigir confirmação explícita quando o enrichment indicar risco alto.
 
-O `short-url` concentra o domínio de links e delega autenticação ao `identity`, mantendo o boundary entre contextos explícito.
+O `Short-url` concentra o domínio de links e delega autenticação ao `Identity`, mantendo o boundary entre contextos explícito.
 
 ## Fluxo ponta a ponta
 
@@ -109,7 +109,7 @@ O `short-url` concentra o domínio de links e delega autenticação ao `identity
 - O usuário se registra com `email`, `password` e `username`.
 - O `username` é normalizado para lowercase e deve ser único.
 - O login retorna um JWT com `sub`, `email` e `username`.
-- O `short-url` usa esse token para operações autenticadas.
+- O `Short-url` usa esse token para operações autenticadas.
 
 ### 2. Criação do link curto
 
@@ -122,10 +122,10 @@ O `short-url` concentra o domínio de links e delega autenticação ao `identity
 
 O dispatcher BullMQ agenda o job com:
 
-- delay inicial de 5 segundos;
-- até 5 tentativas;
-- backoff exponencial;
-- limpeza de histórico com `removeOnComplete` e `removeOnFail`.
+- Delay inicial de 5 segundos;
+- Até 5 tentativas;
+- Backoff exponencial;
+- Limpeza de histórico com `removeOnComplete` e `removeOnFail`.
 
 ### 4. Fetch seguro do conteúdo da página
 
@@ -133,12 +133,12 @@ O worker busca o conteúdo da URL original antes de enriquecer.
 
 O fetcher:
 
-- usa page fetch browser-assisted via `Impit` como estratégia padrão;
-- aceita apenas `http` e `https`;
-- rejeita `localhost`, faixas privadas e hosts inseguros;
-- aplica timeout configurável;
-- extrai `title`, `meta description` e texto limpo do HTML;
-- faz fallback para metadados mínimos quando a resposta não é `text/html`.
+- Usa page fetch browser-assisted via `Impit` como estratégia padrão;
+- Aceita apenas `http` e `https`;
+- Rejeita `localhost`, faixas privadas e hosts inseguros;
+- Aplica timeout configurável;
+- Extrai `title`, `meta description` e texto limpo do HTML;
+- Faz fallback para metadados mínimos quando a resposta não é `text/html`.
 
 ### 5. Pipeline de enrichment
 
@@ -180,31 +180,31 @@ Arquivos centrais desse fluxo:
 ### 9. Redirect humanizado
 
 - `GET /:username/:alternativeSlug`
-- Resolve o `username` no `identity`.
+- Resolve o `username` no `Identity`.
 - Busca a URL do dono cujo enrichment produziu o `alternativeSlug`, persistido como `slug-N` e mantido único por usuário.
 - Aplica a mesma regra de segurança do redirect clássico.
 
 ## Comunicação entre serviços
 
-O `short-url` depende do `identity` para dois contratos internos via Nest TCP:
+O `Short-url` depende do `Identity` para dois contratos internos via Nest TCP:
 
 - `validate_user_token`
 - `find_user_by_username`
 
 Em termos práticos:
 
-- requisições autenticadas chegam ao `short-url`;
-- o guard consulta o `identity`;
-- o `identity` valida o JWT e devolve `userId`, `email` e `username`;
-- a rota humanizada consulta o `identity` para resolver `username -> userId`.
+- Requisições autenticadas chegam ao `Short-url`;
+- O guard consulta o `Identity`;
+- O `Identity` valida o JWT e devolve `userId`, `email` e `username`;
+- A rota humanizada consulta o `Identity` para resolver `username -> userId`.
 
 ## Regras de segurança relevantes
 
-- O `identity` exige `username` único no registro.
+- O `Identity` exige `username` único no registro.
 - O `username` aceito no cadastro deve ter entre 3 e 30 caracteres, em lowercase, com letras, números, hífen ou underscore.
 - O `shortUrlCode` aceito nas rotas protegidas e públicas deve ter exatamente 8 caracteres alfanuméricos.
 - O fetch de conteúdo rejeita protocolos e hosts inseguros.
-- O `short-url` não redireciona automaticamente URLs com `riskLevel=high`.
+- O `Short-url` não redireciona automaticamente URLs com `riskLevel=high`.
 - O clique só é contabilizado quando o redirect realmente acontece.
 
 ## Pré-requisitos
@@ -252,9 +252,9 @@ Grupos mais relevantes:
   - `REDIS_HOST`
   - `REDIS_PORT`
   - `REDIS_PASSWORD`
-- Banco do `identity`
+- Banco do `Identity`
   - `DB_IDENTITY_*`
-- Banco do `short-url`
+- Banco do `Short-url`
   - `DB_SHORT_URL_*`
 
 Use [.env.example](./.env.example) como base.
@@ -277,7 +277,7 @@ Serviços expostos:
 - Swagger Identity: `http://localhost:4000/api-docs`
 - Swagger Short URL: `http://localhost:4001/api-docs`
 
-O `docker-compose` agora também espera `postgres`, `redis` e `identity` ficarem saudáveis antes de subir o `short-url`.
+O `docker-compose` agora também espera `postgres`, `redis` e `Identity` ficarem saudáveis antes de subir o `Short-url`.
 
 Parar a stack:
 
@@ -360,13 +360,13 @@ yarn workspace @secure-url-shortener/short-url test:e2e
 
 Os testes cobrem principalmente:
 
-- validação de DTOs;
-- guards de autenticação;
-- payloads de autenticação;
-- lookup por `username`;
-- redirect clássico;
-- redirect humanizado;
-- aviso HTML para URLs de alto risco.
+- Validação de DTOs;
+- Guards de autenticação;
+- Payloads de autenticação;
+- Lookup por `username`;
+- Redirect clássico;
+- Redirect humanizado;
+- Aviso HTML para URLs de alto risco.
 
 ## Lint e formatação
 
@@ -385,6 +385,7 @@ yarn workspace @secure-url-shortener/short-url lint
 ## Observações
 
 - O schema do banco é sincronizado automaticamente fora de produção (`synchronize`).
-- O enrichment só roda quando `AI_ENRICHMENT_ENABLED=true`.
-- Com o pipeline ativo, o provider composto tenta Gemini primeiro e usa heurística se o provider principal falhar.
+- O worker de enrichment continua processando itens pendentes mesmo quando `AI_ENRICHMENT_ENABLED=false`.
+- `AI_ENRICHMENT_ENABLED` desliga apenas o provider de AI; nesse caso o pipeline usa diretamente o provider heurístico local.
+- Com a AI habilitada, o provider composto tenta Gemini primeiro e usa heurística se o provider principal falhar.
 - O `provider` persistido em `url_enrichments` indica qual engine gerou o enrichment final (`gemini` ou `heuristic`).
