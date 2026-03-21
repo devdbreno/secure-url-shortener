@@ -1,1 +1,1 @@
-yarn precommit
+corepack yarn precommit || exit 1

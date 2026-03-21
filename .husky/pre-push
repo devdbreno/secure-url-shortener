@@ -1,1 +1,2 @@
-yarn prepush
+corepack yarn test:unit || exit 1
+corepack yarn test:e2e || exit 1
