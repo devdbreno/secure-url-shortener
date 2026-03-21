@@ -198,7 +198,11 @@ export class UrlRepository implements IUrlRepository {
     return this.appendAlternativeSlugSuffix(baseSlug, latestSuffix + 1);
   }
 
-  private async findLatestAlternativeSlugForUser(urlId: string, userId: string, baseSlug: string): Promise<string | null> {
+  private async findLatestAlternativeSlugForUser(
+    urlId: string,
+    userId: string,
+    baseSlug: string,
+  ): Promise<string | null> {
     const suffixPattern = `^${this.escapeRegex(baseSlug)}-(\\d+)$`;
     const lastItem = await this.repo
       .createQueryBuilder('url')

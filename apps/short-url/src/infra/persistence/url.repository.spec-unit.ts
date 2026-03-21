@@ -233,7 +233,8 @@ describe('UrlRepository', () => {
   });
 
   it('updates enrichment success and failure states', async () => {
-    const { repository, manager, enrichmentRepository, ormRepository, alternativeSlugQueryBuilder } = createRepository();
+    const { repository, manager, enrichmentRepository, ormRepository, alternativeSlugQueryBuilder } =
+      createRepository();
 
     ormRepository.findOne.mockResolvedValueOnce({
       id: '1',
